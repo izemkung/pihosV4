@@ -8,6 +8,8 @@ const Moment = require("moment");
 var net = require('net');
 var request = require('request');
 const fs = require('fs');
+var Gpio = require('onoff').Gpio; //include onoff to interact with the GPIO
+var LED = new Gpio(17, 'out'); //use GPIO pin 17 PC, and specify that it is output
 
 
 const { Worker } = require('worker_threads') 
@@ -17,12 +19,7 @@ var ping = require('ping');
 var hosts = ['192.168.100.201', '192.168.100.202', '192.168.100.203', '192.168.100.204'];
 var arrayCamOnline = [];
 
-var client;
-var isConnect = 0;
 var countSend = 0;
-
-//GPS Update
-
 
 //Get pic
 function runServiceCam(workerData) { 
@@ -65,6 +62,7 @@ async function main()
         var programLoopTime = Date.now()
         var arrayCamPic = [];
         var GetPicError = 0;
+        
         for (let cam of arrayCamOnline) {
             const result1 = await runServiceCam(cam);
 
@@ -72,6 +70,13 @@ async function main()
             if(result1.Data == 'Error')
             {
                 console.log(cam +' '+result1.Data);
+                LED.writeSync(1);
+                await wasteTime(100);
+                LED.writeSync(0);
+                await wasteTime(100);
+                LED.writeSync(1);
+                await wasteTime(100);
+                LED.writeSync(0);
             }else{
                 arrayCamPic.push(result1); 
             }
@@ -86,9 +91,13 @@ async function main()
             //console.log(arrayCamPic['CAM1'])
             //console.log(arrayCamPic['CAM1'])
             countSend++;
+            LED.writeSync(1);
             const r = request.post('http://202.183.192.149:3000/fileupload', function optionalCallback(err, httpResponse, body) {
                 //console.log('status', httpResponse && httpResponse.statusCode); 
-
+                if (err) {
+                    LED.writeSync(0);
+                    console.error(err)
+                }
                 console.log('Time:'+((programEnd - Date.now())/1000  )+ ' Count:'+countSend +' Code:', httpResponse && httpResponse.statusCode);
             })
             const form = r.form();
@@ -102,6 +111,7 @@ async function main()
                   });
             }
             
+            LED.writeSync(0);
         }
         //gps.update("$GPGGA,224900.000,4832.3762,N,00903.5393,E,1,04,7.8,498.6,M,48.0,M,,0000*5E");
         var programLoopTimeDiff = Date.now() - programLoopTime;
@@ -198,8 +208,8 @@ function sleep(ms) {
   }   
 
 
-function wasteTime() {
-    const end = Date.now() + 3000;
+function wasteTime(ms) {
+    const end = Date.now() + ms;
     while (Date.now() < end) { }
 }
 
