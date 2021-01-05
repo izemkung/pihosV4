@@ -10,7 +10,9 @@ var request = require('request');
 const fs = require('fs');
 var Gpio = require('onoff').Gpio; //include onoff to interact with the GPIO
 var LED = new Gpio(17, 'out'); //use GPIO pin 17 PC, and specify that it is output
-
+var mongo = require('mongodb');
+var mongoClient = require('mongodb').MongoClient;
+var urlMongo = "mongodb://127.0.0.1:27017/";//currentPicURL
 
 const { Worker } = require('worker_threads') 
 
@@ -20,6 +22,39 @@ var hosts = ['192.168.100.201', '192.168.100.202', '192.168.100.203', '192.168.1
 var arrayCamOnline = [];
 
 var countSend = 0;
+const timeLoop = 2000;
+
+var carID = 99;
+var server = "";
+var numCamera = "";
+
+mongoClient.connect(urlMongo, function(err, db) {
+    if (err) 
+    {
+        console.log(err);
+        throw err;
+
+    }
+
+    var dbo = db.db("pihos");
+    var myquery = {};
+    //myquery['CarID'] = car_id ;
+    dbo.collection("configs").findOne({}, function(err, _res) {
+        if (err) 
+        {
+            console.log(err);
+            throw err;
+
+        }
+        console.log(_res);
+        carID = _res['id'];
+        numCamera  = _res['camN'];
+        server = _res['server'];
+
+
+        db.close();
+    });
+  });
 
 //Get pic
 function runServiceCam(workerData) { 
@@ -40,11 +75,22 @@ async function main()
 { 
     await getCameraOnline();
     var programEnd = Date.now() + 600000;
-
+    
+    console.log(carID);
+    console.log(server);
+    console.log(numCamera);
 
     arrayCamOnline = [];
-    arrayCamOnline.push('CAM1');
-    arrayCamOnline.push('CAM2');
+    console.log("Loop");
+    for (var iCount =1; iCount < (numCamera+1) ; iCount++) 
+    {
+        var msgCam =  'CAM'+ iCount;
+        console.log(msgCam);
+        arrayCamOnline.push( msgCam);    
+    }
+    
+    
+    console.log(arrayCamOnline);
 
     if(arrayCamOnline.length <= 1)
     {
@@ -92,7 +138,8 @@ async function main()
             //console.log(arrayCamPic['CAM1'])
             countSend++;
             LED.writeSync(1);
-            const r = request.post('http://202.183.192.149:3000/fileupload', function optionalCallback(err, httpResponse, body) {
+            var url = server + ':3000/fileupload'
+            const r = request.post(url, function optionalCallback(err, httpResponse, body) {
                 //console.log('status', httpResponse && httpResponse.statusCode); 
                 if (err) {
                     LED.writeSync(0);
@@ -101,7 +148,7 @@ async function main()
                 console.log('Time:'+((programEnd - Date.now())/1000  )+ ' Count:'+countSend +' Code:', httpResponse && httpResponse.statusCode);
             })
             const form = r.form();
-            form.append('ID', '1');
+            form.append('ID', carID);
             form.append('Time', countSend);
             for (let pic of arrayCamPic)
             {
@@ -115,12 +162,12 @@ async function main()
         }
         //gps.update("$GPGGA,224900.000,4832.3762,N,00903.5393,E,1,04,7.8,498.6,M,48.0,M,,0000*5E");
         var programLoopTimeDiff = Date.now() - programLoopTime;
-        if(programLoopTimeDiff > 3000)
+        if(programLoopTimeDiff > timeLoop)
         {
-            programLoopTimeDiff = 3000;
+            programLoopTimeDiff = timeLoop;
         }
         //console.log('sleep ' + programLoopTimeDiff)
-        await sleep(3000 -  programLoopTimeDiff);
+        await sleep(timeLoop -  programLoopTimeDiff);
 
         console.log('loop ' + (Date.now() - programLoopTime) +' ms timeDiff ' + programLoopTimeDiff + ' ms.') 
     }
