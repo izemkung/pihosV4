@@ -27,7 +27,7 @@ col = db.configs #Here spam is my collection
 cur = col.find()  
 configs = list(col.find())
 print (configs)
-
+conn.close()
 #array = json.loads(array)
 
 print(configs[0]['id'])
@@ -35,8 +35,6 @@ print(configs[0]['server'])
 id =  configs[0]['id']
 
 gps_url = configs[0]['server'] + ":3020/api/gps"
-
-version = 30
 
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
