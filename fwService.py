@@ -26,7 +26,6 @@ def internet_on():
 
 if internet_on():
     vercurrent = subprocess.check_output('git rev-parse --verify HEAD', shell=True)
-    print (vercurrent)
     print ("Cur ver " + vercurrent.decode("utf-8") )
 
     vergit =  subprocess.check_output('git ls-remote https://github.com/izemkung/pihosV4 | head -1 | cut -f 1', shell=True)
@@ -37,16 +36,16 @@ if internet_on():
     if (vergit != vercurrent) and (len(vercurrent) == len(vergit)):
         print ("Download FW ")
         if os.path.exists("/home/pi/tmp") == True:
-            print (subprocess.check_output('sudo rm -rf /home/pi/tmp', shell=True)) 
+            subprocess.check_output('sudo rm -rf /home/pi/tmp', shell=True)
             time.sleep(5)   
-        print (subprocess.check_output('sudo git clone https://github.com/izemkung/pihosV4 /home/pi/tmp', shell=True))
+        subprocess.check_output('sudo git clone https://github.com/izemkung/pihosV4 /home/pi/tmp', shell=True)
         time.sleep(10)
-        if os.path.exists("/home/pi/tmp") == True:
-            print (subprocess.check_output('sudo rm -rf /home/pi/pihos', shell=True))
+        if os.path.exists("/home/pi/pihosV4") == True:
+            subprocess.check_output('sudo rm -rf /home/pi/pihosV4', shell=True)
             time.sleep(0.5)
-            print (subprocess.check_output('sudo mv /home/pi/tmp /home/pi/pihos', shell=True))
+        subprocess.check_output('sudo mv /home/pi/tmp /home/pi/pihosV4', shell=True)
     
         print ("FW Ready to use!!!")
-        #os.system('sudo reboot')
+        os.system('sudo reboot')
 else:
     time.sleep(10)

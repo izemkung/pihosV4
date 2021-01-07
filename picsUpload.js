@@ -70,6 +70,21 @@ function runServiceCam(workerData) {
         }) 
     }) 
 } 
+
+function camStatus(msg) { 
+    mongoClient.connect(urlMongo, function(err, db) {
+        if (err)
+            throw err;
+        var dbo = db.db("pihos");
+        var myquery = {$set: {'statusPIC': msg}};
+        //myquery['CarID'] = car_id ;
+        dbo.collection("status").updateOne({},myquery, function(err, _res) {
+            if (err)
+                throw err;
+            db.close();
+        });
+      });
+} 
   
 async function main() 
 { 
@@ -79,7 +94,24 @@ async function main()
     console.log(carID);
     console.log(server);
     console.log(numCamera);
+    
+    var numCam = arrayCamOnline.length;
+    console.log(arrayCamOnline);
+    console.log(numCam);
+    mongoClient.connect(urlMongo, function(err, db) {
+        if (err)
+            throw err;
+        var dbo = db.db("pihos");
+        var myquery = {$set: {'numCam': numCam}};
+        //myquery['CarID'] = car_id ;
+        dbo.collection("status").updateOne({},myquery, function(err, _res) {
+            if (err)
+                throw err;
+            db.close();
+        });
+      });
 
+    
     arrayCamOnline = [];
     console.log("Loop");
     for (var iCount =1; iCount < (numCamera+1) ; iCount++) 
@@ -107,6 +139,7 @@ async function main()
     {
         var programLoopTime = Date.now()
         var arrayCamPic = [];
+        var arrayCamError = [];
         var GetPicError = 0;
         
         for (let cam of arrayCamOnline) {
@@ -115,6 +148,7 @@ async function main()
             //console.log(result1.Data);
             if(result1.Data == 'Error')
             {
+                arrayCamError.push(cam +' '+result1.Data)
                 console.log(cam +' '+result1.Data);
                 LED.writeSync(1);
                 await wasteTime(100);
@@ -124,9 +158,13 @@ async function main()
                 await wasteTime(100);
                 LED.writeSync(0);
             }else{
+                arrayCamError.push(cam +' Ok')
                 arrayCamPic.push(result1); 
             }
         }
+
+        
+
         //const result2 = await runServiceCam('CAM2') 
         //arrayCamPic.push(result2);
         
@@ -144,6 +182,7 @@ async function main()
                 if (err) {
                     LED.writeSync(0);
                     console.error(err)
+                    arrayCamError.push('Send Error')
                 }
                 console.log('Time:'+((programEnd - Date.now())/1000  )+ ' Count:'+countSend +' Code:', httpResponse && httpResponse.statusCode);
             })
@@ -157,7 +196,7 @@ async function main()
                     contentType: 'image/jpeg'
                   });
             }
-            
+            arrayCamError.push('Send OK')
             LED.writeSync(0);
         }
         //gps.update("$GPGGA,224900.000,4832.3762,N,00903.5393,E,1,04,7.8,498.6,M,48.0,M,,0000*5E");
@@ -167,6 +206,7 @@ async function main()
             programLoopTimeDiff = timeLoop;
         }
         //console.log('sleep ' + programLoopTimeDiff)
+        camStatus(arrayCamError);
         await sleep(timeLoop -  programLoopTimeDiff);
 
         console.log('loop ' + (Date.now() - programLoopTime) +' ms timeDiff ' + programLoopTimeDiff + ' ms.') 

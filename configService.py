@@ -15,6 +15,7 @@ import re
 import pymongo
 
 REMOTE_SERVER = "www.google.com"
+myconfig = ''
 
 def internet_on():
     try:
@@ -130,13 +131,67 @@ def getCPUInfo():
     res['CPU'] = str(os.popen("top -n1 | awk '/Cpu\(s\):/ {print $2}'").readline().strip())
     return res
 
+def getConfig():
+    global myconfig
+    if internet_on() == False:
+        return
 
+    print ( 'Read Configs' )
+   
+    modeminfo = getModemInfo(['mmcli','-m','0'])
+    if(modeminfo == "error"):
+        print ('Modem Error') 
+        return
+    
+    try:
+        webConfig = requests.get('http://159.89.208.90:5000/config/' + modeminfo['3GPP']['imei'])
+        webConfig = webConfig.json()
+    except:
+        return
 
+    del webConfig['_id']
+    myconfig = webConfig
+    #update config file
+    my_file = open("/etc/hostapd/hostapd.conf")
+    string_list = my_file.readlines()
+    my_file.close()
 
-print ("Start configService")
+    for idx in range(0, len(string_list)):
+        line = string_list[idx]
+        if 'PihosV4_' in line:
+            first_idx = line.find('_') + 1
+            currentID = line[first_idx:].strip('\n')
+           
+            if( currentID != webConfig['id'] ):
+                print("Update SSID")
+                string_list[idx] = 'ssid=PihosV4_' + webConfig['id'] + '\n'
+                print(string_list[idx])
+                my_file = open("/etc/hostapd/hostapd.conf", "w")
+                new_file_contents = "".join(string_list)
+                my_file.write(new_file_contents)
+                my_file.close()
+                os.popen("sudo service hostapd restart")
+                print("Reboot hostapd Service")
+                #reconnect camera
+            else:
+                print("SSID Ok.")
 
-if internet_on():
-    print ( 'internet OK' )
+    mongoConn = pymongo.MongoClient()
+    db_pihos = mongoConn.pihos #test is my database
+    db_pihos_configs = db_pihos.configs #Here spam is my collection
+    newvalues = { "$set": webConfig}
+    print ('Write new configs ')
+    print (newvalues)
+    db_pihos_configs.update_one({}, newvalues)
+    configs = list(db_pihos_configs.find())
+    print ('Read current configs ')
+    print (configs)
+    mongoConn.close()
+    
+def networkStatus():
+    global myconfig
+    if internet_on() == False:
+        return
 
     modeminfo = getModemInfo(['mmcli','-m','0'])
     siminfo = getModemInfo(['mmcli','-i','0'])
@@ -151,74 +206,12 @@ if internet_on():
     if(bearrerinfo == "error"):
         print ('bearrerinfo Error') 
     if(cpuinfo == "error"):
-        print ('cpuinfo Error') 
-
-    '''
-    try:
-        print (modeminfo['Hardware']['manufacturer'] + modeminfo['Hardware']['revision'] )
-        print (modeminfo['Hardware']['equipment id'] )
-
-        print (modeminfo['Status']['state'] ) # =searching(simOut) =failed(norfound) = connected(OK)
-        print (modeminfo['Status']['power state'] )
-        print (modeminfo['Status']['access tech'] )
-        print (modeminfo['Status']['signal quality'] )
-
-        print (modeminfo['3GPP']['imei'] )
-        print (modeminfo['3GPP']['operator id'] )
-        print (modeminfo['3GPP']['operator name'] )
-        print (modeminfo['3GPP']['registration'])
-
-        print (siminfo['Properties']['imsi'])
-        print (siminfo['Properties']['iccid'])
-        print (siminfo['Properties']['operator name'])
-    except:
-            pass
-    '''
-
-    webConfig = requests.get('http://159.89.208.90:5000/config/' + modeminfo['3GPP']['imei'])
-    webConfig = webConfig.json()
-    del webConfig['_id']
-
-    #update config file
-    my_file = open("/etc/hostapd/hostapd.conf")
-    string_list = my_file.readlines()
-    my_file.close()
-
-    #webConfig['id'] = '98'
-    #print(string_list)
-
-    for idx in range(0, len(string_list)):
-        line = string_list[idx]
-        if 'PihosV4_' in line:
-            first_idx = line.find('_') + 1
-            currentID = line[first_idx:].strip('\n')
-            if( currentID != webConfig['id'] ):
-                print("Update SSID")
-                string_list[idx] = 'ssid=PihosV4_' + webConfig['id'] + '\n'
-                print(string_list[idx])
-                my_file = open("/etc/hostapd/hostapd.conf", "w")
-                new_file_contents = "".join(string_list)
-                my_file.write(new_file_contents)
-                my_file.close()
-                os.popen("sudo service hostapd restart")
-                print("Reboot hostapd Service")
-                #reconnect camera
-            else:
-                print("SSID Ok.")
-                
+        print ('cpuinfo Error')
 
     #write config file
     mongoConn = pymongo.MongoClient()
     db_pihos = mongoConn.pihos #test is my database
-    db_pihos_configs = db_pihos.configs #Here spam is my collection
     db_pihos_status = db_pihos.status
-
-    newvalues = { "$set": webConfig}
-    print ('Load configs ')
-    print (newvalues)
-
-    db_pihos_configs.update_one({}, newvalues)
-
     newvalues = {}
     newvalues['accessTech'] = modeminfo['Status']['access tech']
     newvalues['imei'] = modeminfo['Hardware']['equipment id']
@@ -232,18 +225,91 @@ if internet_on():
     newvalues['model'] = cpuinfo['Model']
     newvalues['tepm'] = cpuinfo['Tepm']
     newvalues['cpu'] = cpuinfo['CPU']
-
+    newvalues['id'] = myconfig['id']
     newvalues = { "$set": newvalues}
     db_pihos_status.update_one({}, newvalues)
-
-
-    configs = list(db_pihos_configs.find())
-    print ('Read current configs ')
-    print (configs)
-    configs = list(db_pihos_status.find())
+    status = list(db_pihos_status.find())
     print ('Read current status ')
-    print (configs)
+    print (status)
+
+def sendStatusPack(msg,time):
+    print ('Read status ')
+    mongoConn = pymongo.MongoClient()
+    db_pihos = mongoConn.pihos #test is my database
+    db_pihos_status = db_pihos.status #Here spam is my collection
+    
+    cur = db_pihos_status.find()
+    status = list(cur)
+    status[0]['msg'] = msg
+    status[0]['upTime'] = time
+    print (status[0])
+
     mongoConn.close()
+    del status[0]['_id']
+    headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
+    r = requests.post('http://159.89.208.90:5000/status/',data=json.dumps(status[0]), headers=headers)
+    try:
+        pass    
+    except:
+        pass
+
+def SendAlartFun(channel):
+    global myconfig
+    nti_url = myconfig['server'] + ":3020/api/notification"
+    try:
+        resp = requests.get(nti_url+'/?ambulance_id={0}&imei={2}'.format(myconfig[id], myconfig['sn']), timeout=3.001)
+        print ('content     ' + resp.content) 
+    except:
+        print ('SendAlartFun Connection lost')
 
 
+while(internet_on() == False):
+    time.sleep(10)
+print ("Start configService")
 
+GPIO.setwarnings(False)
+GPIO.setmode(GPIO.BCM) ## Use board pin numbering
+GPIO.setup(4, GPIO.IN) # Power
+GPIO.setup(3, GPIO.IN) # Alart
+GPIO.setup(17,GPIO.OUT) # LED Red
+GPIO.add_event_detect(3, GPIO.RISING, callback=SendAlartFun, bouncetime=100)
+
+
+lastTimeTask1 = time.time()
+lastTimeTask2 = time.time()
+lastTimeTask3 = time.time()
+timeStart = time.time()
+
+sendStatusPack('Power on',0)
+
+
+while(True):         
+
+    currentTime = time.time()
+    if currentTime > lastTimeTask1:
+        lastTimeTask1 = currentTime + 600 #sec
+        getConfig()
+
+    if currentTime > lastTimeTask2:
+        lastTimeTask2 = currentTime + 60 #sec
+        networkStatus()
+
+    if currentTime > lastTimeTask3:
+        lastTimeTask3 = currentTime + 10
+        sendStatusPack( 'online', (currentTime - timeStart)/60 )
+
+    if(GPIO.input(4) == 0):
+        sendStatusPack( 'Off ', (currentTime - timeStart)/60 )
+        print("Pi Power Off Process!!")
+        time.sleep(1)
+        i = 0
+        while( i < 20):
+            i += 1
+            time.sleep(0.2)
+            GPIO.output(17,True)
+            time.sleep(0.2)
+            GPIO.output(17,False)
+        #os.system('sudo shutdown -h now')
+        break
+
+    time.sleep(1)
