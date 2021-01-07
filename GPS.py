@@ -42,7 +42,21 @@ GPIO.setmode(GPIO.BCM)
 gpsd = None 
 timeout = None
 timeReset = None
+gpsStatus = 'up'
 
+def GpsStatus(var):
+  global gpsStatus
+  if (var == gpsStatus):
+    return
+  gpsStatus = var
+  mongoConn = pymongo.MongoClient()
+  db_pihos = mongoConn.pihos #test is my database
+  db_pihos_status = db_pihos.status
+  newvalues = {}
+  newvalues['statusGPS'] = var
+  newvalues = { "$set": newvalues}
+  db_pihos_status.update_one({}, newvalues)
+  mongoConn.close()
 
 class GpsPoller(threading.Thread):
   def __init__(self):
@@ -90,6 +104,7 @@ while True:
         print ('status_code ' , resp.status_code)
         time.sleep(0.3)
         GPIO.output(22,False)
+        GpsStatus('code : ' + resp.status_code)
       #print 'headers     ' , resp.headers
       #print 'content     ' , resp.content
       #GPIO.output(27,True)
@@ -98,6 +113,7 @@ while True:
         countSend += 1
         countError = 0
         timeout = time.time() + 30 #timeout reset
+        GpsStatus('up')
       else:
         print ('respError')
         countError += 1
@@ -116,6 +132,7 @@ while True:
 
   if (time.time() > timeout):
     print ("Timeout")
+    GpsStatus('Timeout')
     for count in range(0, 2):
       time.sleep(0.5)
       GPIO.output(22,True)
@@ -124,6 +141,7 @@ while True:
     break
 
   if (time.time() > timeReset):
+    GpsStatus('TimeReset')
     print ("TimeReset")
     for count in range(0, 2):
       time.sleep(0.5)
@@ -133,6 +151,7 @@ while True:
     break
     
   if (countError > 20):
+    GpsStatus('countError')
     print ("countError")
     for count in range(0, 10):
       time.sleep(0.2)
