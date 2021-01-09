@@ -92,7 +92,7 @@ while True:
   if (str(gpsd.fix.latitude) != 'nan' and str(gpsd.fix.latitude) != '0.0'):
     GPIO.output(22,True)
     try:
-      resp = requests.get(gps_url+'/?ambulance_id={0}&tracking_latitude={1:.6f}&tracking_longitude={2:.6f}&tracking_speed={3:.2f}&tracking_heading={4}'.format(id,gpsd.fix.latitude,gpsd.fix.longitude,gpsd.fix.speed,gpsd.fix.track), timeout=2.001)
+      resp = requests.get(gps_url+'/?ambulance_id={0}&tracking_latitude={1:.6f}&tracking_longitude={2:.6f}&tracking_speed={3:.2f}&tracking_heading={4}'.format(id,gpsd.fix.latitude,gpsd.fix.longitude,gpsd.fix.speed,gpsd.fix.track),timeout=(2.05, 5))
       
       if(resp.status_code != 200 ):
         print ('status_code ' , resp.status_code)
@@ -128,8 +128,6 @@ while True:
   if (time.time() > timeout):
     print ("Timeout")
     GpsStatus('Timeout')
-    threadingOut = True
-    gpsp.running = False
     for count in range(0, 2):
       time.sleep(0.5)
       GPIO.output(22,True)
@@ -140,8 +138,6 @@ while True:
   if (countError > 30):
     GpsStatus('countError')
     print ("countError")
-    threadingOut = True
-    gpsp.running = False
     for count in range(0, 10):
       time.sleep(0.2)
       GPIO.output(22,True)
@@ -151,7 +147,7 @@ while True:
 
 threadingOut = True
 gpsp.running = False
-#gpsp.join() # wait for the thread to finish what it's doing
+gpsp.join() # wait for the thread to finish what it's doing
 GPIO.output(22,False)
 GPIO.cleanup()
 print ("Done.\nExiting.")
