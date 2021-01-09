@@ -128,7 +128,13 @@ def getCPUInfo():
 
 
     res['Tepm'] = out[first_idx:].strip('\n')
-    res['CPU'] = str(os.popen("top -n1 | awk '/Cpu\(s\):/ {print $2}'").readline().strip())
+    try:
+        byteOutput = subprocess.check_output(['uptime'], timeout=2)
+        out = byteOutput.decode('UTF-8').rstrip()
+        first_idx = out.find('average:') + 9
+        res['CPU'] = out[first_idx:].strip('\n')
+    except:
+        pass
     return res
 
 def getConfig():
@@ -179,6 +185,10 @@ def getConfig():
     mongoConn = pymongo.MongoClient()
     db_pihos = mongoConn.pihos #test is my database
     db_pihos_configs = db_pihos.configs #Here spam is my collection
+
+    
+    #webConfig['mqtt'] =  "159.89.208.90"
+
     newvalues = { "$set": webConfig}
     print ('Write new configs ')
     print (newvalues)
@@ -195,7 +205,7 @@ def networkStatus():
 
     modeminfo = getModemInfo(['mmcli','-m','0'])
     siminfo = getModemInfo(['mmcli','-i','0'])
-    bearrerinfo = getModemInfo(['mmcli','-b','0'])
+    bearrerinfo = getModemInfo(['mmcli','-b',modeminfo['Bearer']['dbus path'][38:].strip('\n')])
     cpuinfo = getCPUInfo()
     #print (cpuinfo)
 
@@ -229,6 +239,7 @@ def networkStatus():
     newvalues = { "$set": newvalues}
     db_pihos_status.update_one({}, newvalues)
     status = list(db_pihos_status.find())
+    mongoConn.close()
     print ('Read current status ')
     print (status)
 
@@ -241,17 +252,17 @@ def sendStatusPack(msg,time):
     cur = db_pihos_status.find()
     status = list(cur)
     status[0]['msg'] = msg
-    status[0]['upTime'] = time
+    #status[0]['upTime'] = time
+    byteOutput = subprocess.check_output(['uptime'], timeout=2)
+    out = byteOutput.decode('UTF-8').rstrip()
+    status[0]['upTime'] = out[1:].strip('s,')
     print (status[0])
 
     mongoConn.close()
     del status[0]['_id']
     headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
     r = requests.post('http://159.89.208.90:5000/status/',data=json.dumps(status[0]), headers=headers)
-    try:
-        pass    
-    except:
-        pass
+  
 
 def SendAlartFun(channel):
     global myconfig
@@ -295,7 +306,7 @@ while(True):
         networkStatus()
 
     if currentTime > lastTimeTask3:
-        lastTimeTask3 = currentTime + 10
+        lastTimeTask3 = currentTime + 60
         sendStatusPack( 'online', (currentTime - timeStart)/60 )
 
     if(GPIO.input(4) == 0):
@@ -309,7 +320,7 @@ while(True):
             GPIO.output(17,True)
             time.sleep(0.2)
             GPIO.output(17,False)
-        #os.system('sudo shutdown -h now')
+        os.system('sudo shutdown -h now')
         break
 
     time.sleep(1)

@@ -27,34 +27,33 @@ const timeLoop = 2000;
 var carID = 99;
 var server = "";
 var numCamera = "";
+readConfigs();
 
-mongoClient.connect(urlMongo, function(err, db) {
-    if (err) 
-    {
-        console.log(err);
-        throw err;
-
-    }
-
-    var dbo = db.db("pihos");
-    var myquery = {};
-    //myquery['CarID'] = car_id ;
-    dbo.collection("configs").findOne({}, function(err, _res) {
+function readConfigs() {
+    mongoClient.connect(urlMongo, function(err, db) {
         if (err) 
         {
             console.log(err);
             throw err;
 
         }
-        console.log(_res);
-        carID = _res['id'];
-        numCamera  = _res['camN'];
-        server = _res['server'];
+        var dbo = db.db("pihos");
+        dbo.collection("configs").findOne({}, function(err, _res) {
+            if (err) 
+            {
+                console.log(err);
+                throw err;
+            }
+            console.log(_res);
+            carID = _res['id'];
+            numCamera  = _res['camN'];
+            server = _res['server'];
 
 
-        db.close();
+            db.close();
+        });
     });
-  });
+}
 
 //Get pic
 function runServiceCam(workerData) { 
@@ -134,13 +133,13 @@ async function main()
         programEnd = Date.now() + 3000;
     }
 
-    
+    var GetPicError = 0;
     while(Date.now() < programEnd)
     {
         var programLoopTime = Date.now()
         var arrayCamPic = [];
         var arrayCamError = [];
-        var GetPicError = 0;
+        
         
         for (let cam of arrayCamOnline) {
             const result1 = await runServiceCam(cam);
@@ -157,14 +156,12 @@ async function main()
                 LED.writeSync(1);
                 await wasteTime(100);
                 LED.writeSync(0);
+                GetPicError += 1;
             }else{
                 arrayCamError.push(cam +' Ok')
                 arrayCamPic.push(result1); 
             }
         }
-
-        
-
         //const result2 = await runServiceCam('CAM2') 
         //arrayCamPic.push(result2);
         
@@ -178,11 +175,11 @@ async function main()
             LED.writeSync(1);
             var url = server + ':3000/fileupload'
             const r = request.post(url, function optionalCallback(err, httpResponse, body) {
-                //console.log('status', httpResponse && httpResponse.statusCode); 
                 if (err) {
                     LED.writeSync(0);
                     console.error(err)
                     arrayCamError.push('Send Error')
+                    GetPicError += 1;
                 }
                 console.log('Time:'+((programEnd - Date.now())/1000  )+ ' Count:'+countSend +' Code:', httpResponse && httpResponse.statusCode);
             })
@@ -205,17 +202,28 @@ async function main()
         {
             programLoopTimeDiff = timeLoop;
         }
-        //console.log('sleep ' + programLoopTimeDiff)
+        
         camStatus(arrayCamError);
         await sleep(timeLoop -  programLoopTimeDiff);
 
         console.log('loop ' + (Date.now() - programLoopTime) +' ms timeDiff ' + programLoopTimeDiff + ' ms.') 
+
+        if(GetPicError < 20) 
+        {
+            programEnd = Date.now() + 30000;
+        }
+
+        if(GetPicError > 20) 
+        {
+            GetPicError = 0;
+            programEnd = Date.now() + 1000;
+        }
+
+
     }
     
    
     process.exit(1);
-    //destroy(parser)
-    //destroy(gps)
     
 } 
 

@@ -17,7 +17,6 @@ import threading
 import RPi.GPIO as GPIO ## Import GPIO library
 import serial
 import time
-import configparser
 import json
 
 import pymongo
@@ -40,6 +39,7 @@ GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 
 gpsd = None 
+threadingOut = False 
 timeout = None
 timeReset = None
 gpsStatus = 'up'
@@ -68,8 +68,11 @@ class GpsPoller(threading.Thread):
  
   def run(self):
     global gpsd
+    global threadingOut
     while gpsp.running:
       gpsd.next() #this will continue to loop and grab EACH set of gpsd info to clear the buffer
+      if(threadingOut):
+        break
 
 print ('URL > ',gps_url,' ID > ',id)
 gpsp = GpsPoller() # create the thread
@@ -81,6 +84,7 @@ countSend = 0
 countError = 0
 timeout = time.time() + 30
 timeReset = time.time() + 1200
+
 
 while True:
  
@@ -188,8 +192,10 @@ while True:
   #exit()
 
 
+
+threadingOut = True
 gpsp.running = False
-gpsp.join() # wait for the thread to finish what it's doing
+#gpsp.join() # wait for the thread to finish what it's doing
 GPIO.output(22,False)
 GPIO.cleanup()
 print ("Done.\nExiting.")
