@@ -128,6 +128,8 @@ while True:
   if (time.time() > timeout):
     print ("Timeout")
     GpsStatus('Timeout')
+    threadingOut = True
+    gpsp.running = False
     for count in range(0, 2):
       time.sleep(0.5)
       GPIO.output(22,True)
@@ -135,9 +137,11 @@ while True:
       GPIO.output(22,False)
     break
     
-  if (countError > 20):
+  if (countError > 30):
     GpsStatus('countError')
     print ("countError")
+    threadingOut = True
+    gpsp.running = False
     for count in range(0, 10):
       time.sleep(0.2)
       GPIO.output(22,True)
