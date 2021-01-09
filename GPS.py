@@ -18,6 +18,7 @@ import RPi.GPIO as GPIO ## Import GPIO library
 import serial
 import time
 import json
+import socket
 
 import pymongo
 conn = pymongo.MongoClient()
@@ -43,6 +44,19 @@ threadingOut = False
 timeout = None
 timeReset = None
 gpsStatus = 'gps'
+
+def internet_on():
+    try:
+        # see if we can resolve the host name -- tells us if there is
+        # a DNS listening
+        host = socket.gethostbyname(REMOTE_SERVER)
+        # connect to the host -- tells us if the host is actually
+        # reachable
+        s = socket.create_connection((host, 80), 2)
+        return True
+    except:
+        pass
+    return False
 
 def GpsStatus(var):
   global gpsStatus
@@ -74,6 +88,9 @@ class GpsPoller(threading.Thread):
       if(threadingOut):
         break
 
+while(internet_on() == False):
+    time.sleep(10)
+    
 print ('URL > ',gps_url,' ID > ',id)
 gpsp = GpsPoller() # create the thread
 
