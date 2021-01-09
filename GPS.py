@@ -89,6 +89,8 @@ class GpsPoller(threading.Thread):
       if(threadingOut):
         break
 
+GPIO.setup(22, GPIO.OUT)#GPS
+
 while(internet_on() == False):
   GPIO.output(22,True)
   time.sleep(0.2)
@@ -101,8 +103,6 @@ while(internet_on() == False):
 
 print ('URL > ',gps_url,' ID > ',id)
 gpsp = GpsPoller() # create the thread
-
-GPIO.setup(22, GPIO.OUT)#GPS
 
 gpsp.start() # start it up
 countSend = 0
