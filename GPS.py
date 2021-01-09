@@ -30,6 +30,7 @@ print (configs)
 conn.close()
 #array = json.loads(array)
 
+REMOTE_SERVER = "www.google.com"
 print(configs[0]['id'])
 print(configs[0]['server'])
 id =  configs[0]['id']
@@ -46,17 +47,17 @@ timeReset = None
 gpsStatus = 'gps'
 
 def internet_on():
-    try:
-        # see if we can resolve the host name -- tells us if there is
-        # a DNS listening
-        host = socket.gethostbyname(REMOTE_SERVER)
-        # connect to the host -- tells us if the host is actually
-        # reachable
-        s = socket.create_connection((host, 80), 2)
-        return True
-    except:
-        pass
-    return False
+  try:
+      # see if we can resolve the host name -- tells us if there is
+      # a DNS listening
+      host = socket.gethostbyname(REMOTE_SERVER)
+      # connect to the host -- tells us if the host is actually
+      # reachable
+      s = socket.create_connection((host, 80), 2)
+      return True
+  except:
+      pass
+  return False
 
 def GpsStatus(var):
   global gpsStatus
@@ -89,8 +90,15 @@ class GpsPoller(threading.Thread):
         break
 
 while(internet_on() == False):
-    time.sleep(10)
-    
+  GPIO.output(22,True)
+  time.sleep(0.2)
+  GPIO.output(22,False)
+  time.sleep(0.2)
+  GPIO.output(22,True)
+  time.sleep(0.2)
+  GPIO.output(22,False)
+  time.sleep(2)  
+
 print ('URL > ',gps_url,' ID > ',id)
 gpsp = GpsPoller() # create the thread
 
