@@ -82,23 +82,14 @@ GPIO.setup(22, GPIO.OUT)#GPS
 gpsp.start() # start it up
 countSend = 0
 countError = 0
-timeout = time.time() + 30
+timeout = time.time() + 120
 timeReset = time.time() + 1200
 
 
 while True:
  
   print ('GPS sending Seccess ' , countSend ,' Error ', countError ) 
-  #print '----------------------------------------'
-  #print 'latitude    ' , gpsd.fix.latitude
-  #print 'longitude   ' , gpsd.fix.longitude
-  #print 'time utc    ' , gpsd.utc,' + ', gpsd.fix.time
-  #print 'Heading     ' , gpsd.fix.track,'deg (true)'
-  #print  gps_url,'?ambulance_id={0}&tracking_latitude={1:.6f}&tracking_longitude={2:.6f}&tracking_speed={3:.2f}'.format(id,gpsd.fix.latitude,gpsd.fix.longitude,gpsd.fix.speed)
-        
-  #print  gps_url,'?ambulance_id={0}&tracking_latitude={1:.6f}&tracking_longitude={2:.6f}&tracking_speed={3:.2f}&tracking_heading={4}'.format(id,gpsd.fix.latitude,gpsd.fix.longitude,gpsd.fix.speed,gpsd.fix.track)
-  #http://safetyam.tely360.com/api/tracking1.php?ambulance_id=99&tracking_latitude=1.1&tracking_longitude=1.1&tracking_speed=60&tracking_heading=100
-  
+ 
   if (str(gpsd.fix.latitude) != 'nan' and str(gpsd.fix.latitude) != '0.0'):
     GPIO.output(22,True)
     try:
@@ -164,6 +155,14 @@ while True:
       GPIO.output(22,False)
     break
 
+threadingOut = True
+gpsp.running = False
+#gpsp.join() # wait for the thread to finish what it's doing
+GPIO.output(22,False)
+GPIO.cleanup()
+print ("Done.\nExiting.")
+exit()
+
   #print 'altitude (m)' , gpsd.fix.altitude
     #print 'eps         ' , gpsd.fix.eps
     #print 'epx         ' , gpsd.fix.epx
@@ -193,10 +192,3 @@ while True:
 
 
 
-threadingOut = True
-gpsp.running = False
-#gpsp.join() # wait for the thread to finish what it's doing
-GPIO.output(22,False)
-GPIO.cleanup()
-print ("Done.\nExiting.")
-exit()
