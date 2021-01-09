@@ -93,11 +93,11 @@ GPIO.setup(22, GPIO.OUT)#GPS
 
 while(internet_on() == False):
   GPIO.output(22,True)
-  time.sleep(0.2)
+  time.sleep(0.1)
   GPIO.output(22,False)
-  time.sleep(0.2)
+  time.sleep(0.1)
   GPIO.output(22,True)
-  time.sleep(0.2)
+  time.sleep(0.1)
   GPIO.output(22,False)
   time.sleep(2)  
 
