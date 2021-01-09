@@ -42,7 +42,7 @@ gpsd = None
 threadingOut = False 
 timeout = None
 timeReset = None
-gpsStatus = 'up'
+gpsStatus = 'gps'
 
 def GpsStatus(var):
   global gpsStatus
@@ -83,7 +83,6 @@ gpsp.start() # start it up
 countSend = 0
 countError = 0
 timeout = time.time() + 120
-timeReset = time.time() + 1200
 
 
 while True:
@@ -100,6 +99,7 @@ while True:
         time.sleep(0.3)
         GPIO.output(22,False)
         GpsStatus('code : ' + resp.status_code)
+        timeout = time.time() + 10
       #print 'headers     ' , resp.headers
       #print 'content     ' , resp.content
       #GPIO.output(27,True)
@@ -107,7 +107,7 @@ while True:
         
         countSend += 1
         countError = 0
-        timeout = time.time() + 30 #timeout reset
+        timeout = time.time() + 60 #timeout reset
         GpsStatus('up')
       else:
         print ('respError')
@@ -132,16 +132,6 @@ while True:
       time.sleep(0.5)
       GPIO.output(22,True)
       time.sleep(2)
-      GPIO.output(22,False)
-    break
-
-  if (time.time() > timeReset):
-    GpsStatus('TimeReset')
-    print ("TimeReset")
-    for count in range(0, 2):
-      time.sleep(0.5)
-      GPIO.output(22,True)
-      time.sleep(0.5)
       GPIO.output(22,False)
     break
     
