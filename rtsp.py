@@ -22,7 +22,9 @@ port = 1883
 username = configs[0]['mqttUse']
 password = configs[0]['mqttPass']
 rtspURL = configs[0]['serverRTSP']
-ffmpeg1_call = "ffmpeg -i rtsp://192.168.100.201/ch0_1.h264 -vcodec copy -acodec copy -f flv "+rtspURL
+
+ffmpeg1_call = "ffmpeg -rtsp_transport tcp -i rtsp://192.168.100.201/ch0_1.h264 -vcodec copy -acodec copy -f flv "+ rtspURL +"/"+ topic +"CAM1"
+ffmpeg2_call = "ffmpeg -rtsp_transport tcp -i rtsp://192.168.100.202/ch0_1.h264 -vcodec copy -acodec copy -f flv "+ rtspURL +"/"+ topic +"CAM2"
 currentCAM = {}
 currentCAM['CAM1'] = 'off'
 currentCAM['CAM2'] = 'off'
@@ -74,6 +76,7 @@ def subscribe(client: mqtt_client):
     global p3
     global p4
     global ffmpeg1_call
+    global ffmpeg2_call
     
     def on_message(client, userdata, msg):
         global currentCAM
@@ -82,6 +85,7 @@ def subscribe(client: mqtt_client):
         global p3
         global p4
         global ffmpeg1_call
+        global ffmpeg2_call
         print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
         person_dict = json.loads(msg.payload.decode())
 
@@ -89,7 +93,7 @@ def subscribe(client: mqtt_client):
             
             currentCAM['CAM1'] = 'on'
             currentCAM['TCAM1'] = time.time()
-            cmd=ffmpeg1_call.split(' ')
+            cmd= ffmpeg1_call.split(' ')
             p1 = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,universal_newlines=True)
             print("Start Cam1")
             
@@ -98,11 +102,13 @@ def subscribe(client: mqtt_client):
             p1.kill()
             print("Stop Cam1")
 
-
         if((person_dict['CAM2'] == 'on' ) and (currentCAM['CAM2'] == 'off')):
             print("Start Cam2")
             currentCAM['CAM2'] = 'on'
             currentCAM['TCAM2'] = time.time()
+            cmd= ffmpeg2_call.split(' ')
+            p2 = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,universal_newlines=True)
+            print("Start Cam2")
             
         elif ((person_dict['CAM2'] == 'off' )and( currentCAM['CAM2'] == 'on')):
             currentCAM['CAM2'] = 'off'
@@ -133,5 +139,5 @@ def subscribe(client: mqtt_client):
 client = connect_mqtt()
 subscribe(client)
 client.loop_forever()
-print("Loop Cam2")
+print("End Loop rtsp")
 
