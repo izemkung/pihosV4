@@ -103,7 +103,6 @@ def subscribe(client: mqtt_client):
             print("Stop Cam1")
 
         if((person_dict['CAM2'] == 'on' ) and (currentCAM['CAM2'] == 'off')):
-            print("Start Cam2")
             currentCAM['CAM2'] = 'on'
             currentCAM['TCAM2'] = time.time()
             cmd= ffmpeg2_call.split(' ')
