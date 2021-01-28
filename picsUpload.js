@@ -1,4 +1,5 @@
 const SerialPort = require("serialport");
+var sizeof = require('object-sizeof')
 const SerialPortParser = require("@serialport/parser-readline");
 const GPS = require("gps");
 const Axios = require("axios");
@@ -69,6 +70,15 @@ function runServiceCam(workerData) {
         }) 
     }) 
 } 
+
+Object.size = function(obj) {
+    var size = 0,
+    key;
+    for (key in obj) {
+        if (obj.hasOwnProperty(key)) size++;
+    }
+    return size;
+};
 
 function camStatus(msg) { 
     mongoClient.connect(urlMongo, function(err, db) {
@@ -145,7 +155,7 @@ async function main()
             const result1 = await runServiceCam(cam);
 
             //console.log(result1.Data);
-            if(result1.Data == 'Error')
+            if(result1.Data == 'Error' || result1.Data == null)
             {
                 arrayCamError.push(cam +' '+result1.Data)
                 console.log(cam +' '+result1.Data);
@@ -158,8 +168,21 @@ async function main()
                 LED.writeSync(0);
                 GetPicError += 1;
             }else{
-                arrayCamError.push(cam +' Ok')
-                arrayCamPic.push(result1); 
+                var size = sizeof(result1);
+                console.log(size);
+                if(size > 100000)
+                {
+                    arrayCamError.push(cam +' Ok')
+                    arrayCamPic.push(result1);
+                }else{
+                    console.log('Size error');
+                    //console.log(size);
+                }
+             
+                
+                
+
+                 
             }
         }
         //const result2 = await runServiceCam('CAM2') 
