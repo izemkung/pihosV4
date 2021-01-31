@@ -200,7 +200,7 @@ async function main()
             const r = request.post(url, function optionalCallback(err, httpResponse, body) {
                 if (err) {
                     LED.writeSync(0);
-                    console.error(err)
+                    console.error(err);
                     arrayCamError.push('Send Error')
                     GetPicError += 1;
                 }
@@ -216,7 +216,8 @@ async function main()
                     contentType: 'image/jpeg'
                   });
             }
-            arrayCamError.push('Send OK')
+            arrayCamError.push('Send OK');
+            await wasteTime(50);
             LED.writeSync(0);
         }
         //gps.update("$GPGGA,224900.000,4832.3762,N,00903.5393,E,1,04,7.8,498.6,M,48.0,M,,0000*5E");

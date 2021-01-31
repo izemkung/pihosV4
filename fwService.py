@@ -46,6 +46,6 @@ if internet_on():
         subprocess.check_output('sudo mv /home/pi/tmp /home/pi/pihosV4', shell=True)
     
         print ("FW Ready to use shutdown!!!")
-        os.system('sudo shutdown -h now')
+        os.system('sudo reboot')
 else:
     time.sleep(10)
