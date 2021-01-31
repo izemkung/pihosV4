@@ -150,7 +150,7 @@ def getConfig():
         return
     
     try:
-        webConfig = requests.get('http://159.89.208.90:5000/config/' + modeminfo['3GPP']['imei'])
+        webConfig = requests.get('http://159.89.208.90:5000/config/' + modeminfo['Hardware']['equipment id'])
         webConfig = webConfig.json()
     except:
         return
