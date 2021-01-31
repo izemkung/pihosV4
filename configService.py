@@ -203,10 +203,13 @@ def networkStatus():
     if internet_on() == False:
         return
 
-    modeminfo = getModemInfo(['mmcli','-m','0'])
-    siminfo = getModemInfo(['mmcli','-i','0'])
-    bearrerinfo = getModemInfo(['mmcli','-b',modeminfo['Bearer']['dbus path'][38:].strip('\n')])
-    cpuinfo = getCPUInfo()
+    try:
+        modeminfo = getModemInfo(['mmcli','-m','0'])
+        siminfo = getModemInfo(['mmcli','-i','0'])
+        bearrerinfo = getModemInfo(['mmcli','-b',modeminfo['Bearer']['dbus path'][38:].strip('\n')])
+        cpuinfo = getCPUInfo()
+    except:
+        return
     #print (cpuinfo)
 
     if(modeminfo == "error"):
