@@ -291,9 +291,10 @@ lastTimeTask2 = time.time()
 lastTimeTask3 = time.time()
 timeStart = time.time()
 
+getConfig()
 sendStatusPack('Power on',0)
 
-getConfig()
+
 
 while(True):         
 
