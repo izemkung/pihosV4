@@ -293,6 +293,7 @@ timeStart = time.time()
 
 sendStatusPack('Power on',0)
 
+getConfig()
 
 while(True):         
 
