@@ -18,6 +18,7 @@ GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(27, GPIO.IN)#3G
 
+countInternet = 0
 def internet_on():
     try:
         # see if we can resolve the host name -- tells us if there is
@@ -56,8 +57,11 @@ while(True):
             print("found cdc-wdm")
             if internet_on() :
                 print("internet OK")
+                countInternet = 0
             else :
-                os.popen("sudo systemctl restart NetworkManager ModemManager")
-                print("restart NetworkManager ModemManager")
+                countInternet += 1
+                if countInternet > 2:
+                    os.popen("sudo systemctl restart NetworkManager ModemManager")
+                    print("restart NetworkManager ModemManager")
     print("sleep")
     time.sleep(60)
