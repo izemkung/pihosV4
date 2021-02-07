@@ -315,7 +315,7 @@ while(True):
         sendStatusPack( 'online', (currentTime - timeStart)/60 )
 
     if(GPIO.input(4) == 0):
-        sendStatusPack( 'Off ', (currentTime - timeStart)/60 )
+        sendStatusPack( 'Power Off', (currentTime - timeStart)/60 )
         print("Pi Power Off Process!!")
         time.sleep(1)
         i = 0
