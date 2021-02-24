@@ -151,7 +151,7 @@ while True:
   time.sleep(0.7) #set to whatever
 
   if (time.time() > timeout):
-    threadingOut = True
+    
     print ("Timeout")
     GpsStatus('Timeout')
     for count in range(0, 5):
@@ -162,7 +162,7 @@ while True:
     #break
     
   if (countError > 30):
-    threadingOut = True
+    
     GpsStatus('countError')
     print ("countError")
     for count in range(0, 10):
