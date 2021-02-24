@@ -164,13 +164,13 @@ def getConfig():
 
     for idx in range(0, len(string_list)):
         line = string_list[idx]
-        if 'PihosV4_' in line:
+        if 'AOC_' in line:
             first_idx = line.find('_') + 1
             currentID = line[first_idx:].strip('\n')
            
             if( currentID != webConfig['id'] ):
                 print("Update SSID")
-                string_list[idx] = 'ssid=PihosV4_' + webConfig['id'] + '\n'
+                string_list[idx] = 'ssid=AOC_' + webConfig['id'] + '\n'
                 print(string_list[idx])
                 my_file = open("/etc/hostapd/hostapd.conf", "w")
                 new_file_contents = "".join(string_list)
@@ -284,9 +284,9 @@ print ("Start configService")
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM) ## Use board pin numbering
 GPIO.setup(4, GPIO.IN) # Power
-GPIO.setup(3, GPIO.IN) # Alart
+GPIO.setup(18, GPIO.IN) # Alart
 GPIO.setup(17,GPIO.OUT) # LED Red
-GPIO.add_event_detect(3, GPIO.RISING, callback=SendAlartFun, bouncetime=100)
+GPIO.add_event_detect(18, GPIO.RISING, callback=SendAlartFun, bouncetime=100)
 
 
 lastTimeTask1 = time.time()

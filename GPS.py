@@ -148,7 +148,7 @@ while True:
   
   time.sleep(0.3) #set to whatever
   GPIO.output(22,False)
-  time.sleep(0.65) #set to whatever
+  time.sleep(0.7) #set to whatever
 
   if (time.time() > timeout):
     print ("Timeout")

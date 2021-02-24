@@ -57,7 +57,7 @@ function readConfigs() {
 }
 
 //Get pic
-function runServiceCam(workerData) { 
+function runServiceCamGetPic(workerData) { 
     return new Promise((resolve, reject) => { 
         const worker = new Worker( 
                 './readpic.js', { workerData }); 
@@ -98,7 +98,7 @@ function camStatus(msg) {
 async function main() 
 { 
     await getCameraOnline();
-    var programEnd = Date.now() + 600000;
+    
     
     console.log(carID);
     console.log(server);
@@ -123,16 +123,22 @@ async function main()
     
     arrayCamOnline = [];
     console.log("Loop");
-    for (var iCount =1; iCount < (numCamera+1) ; iCount++) 
+    for (var iCount =1; iCount < 5 ; iCount++) 
     {
         var msgCam =  'CAM'+ iCount;
         console.log(msgCam);
-        arrayCamOnline.push( msgCam);    
+        if(iCount < numCamera+1)
+            arrayCamOnline.push( msgCam);   
+        else 
+            arrayCamOnline.push("NULL"); 
     }
     
     
     console.log(arrayCamOnline);
 
+
+    var programEnd = Date.now() + 600000;
+    var programStart = Date.now();
     if(arrayCamOnline.length <= 1)
     {
         programEnd = Date.now() + 30000;
@@ -147,18 +153,25 @@ async function main()
     while(Date.now() < programEnd)
     {
         var programLoopTime = Date.now()
+        var arrayResult = [];
         var arrayCamPic = [];
         var arrayCamError = [];
         
         
-        for (let cam of arrayCamOnline) {
-            const result1 = await runServiceCam(cam);
+        const [result1, result2 ,result3,result4] = await Promise.all([runServiceCamGetPic(arrayCamOnline[0]), runServiceCamGetPic(arrayCamOnline[1]),runServiceCamGetPic(arrayCamOnline[2]),runServiceCamGetPic(arrayCamOnline[3])]);
+        arrayResult.push(result1);
+        arrayResult.push(result2);
+        arrayResult.push(result3);
+        arrayResult.push(result4);
+
+        for (let cam of arrayResult) {
+            //const result1 = await runServiceCamGetPic(cam);
 
             //console.log(result1.Data);
-            if(result1.Data == 'Error' || result1.Data == null)
+            if(cam.Data == 'Error' || cam.Data == null)
             {
-                arrayCamError.push(cam +' '+result1.Data)
-                console.log(cam +' '+result1.Data);
+                arrayCamError.push(cam.Name +' '+cam.Data)
+                console.log(cam.Name +' '+cam.Data);
                 LED.writeSync(1);
                 await wasteTime(100);
                 LED.writeSync(0);
@@ -167,25 +180,23 @@ async function main()
                 await wasteTime(100);
                 LED.writeSync(0);
                 GetPicError += 1;
+            }else if(cam.Data == 'NULL')
+            {
+
             }else{
-                var size = sizeof(result1);
+                var size = sizeof(cam);
                 console.log(size);
                 if(size > 100000)
                 {
-                    arrayCamError.push(cam +' Ok')
-                    arrayCamPic.push(result1);
+                    arrayCamError.push(cam.Name +' Ok')
+                    arrayCamPic.push(cam);
                 }else{
                     console.log('Size error');
                     //console.log(size);
                 }
-             
-                
-                
-
-                 
             }
         }
-        //const result2 = await runServiceCam('CAM2') 
+        //const result2 = await runServiceCamGetPic('CAM2') 
         //arrayCamPic.push(result2);
         
         //console.log(result2); 
@@ -266,6 +277,7 @@ async function getCameraOnline()
             arrayCamOnline.push(msgCam);
         }else{
             var msg = 'host ' + host + ' CAM'+ count + ' is death' ;
+            //arrayCamOnline.push("NULL");
             console.log(msg);
         } 
         count++;

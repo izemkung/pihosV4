@@ -43,7 +43,11 @@ async function download()
   //const base64Image1 = await buffer.toString('base64');
    parentPort.postMessage( { Name: workerData, Data: buffer }) ;
 }
-download();
+
+if(workerData != 'NULL')
+    download();
+else
+    parentPort.postMessage( { Name: workerData , Data: "NULL"}) ;
 
 //parentPort.postMessage( 
 //    { fileName: workerData, status: base64Image1 }) 
