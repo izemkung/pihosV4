@@ -35,7 +35,21 @@ def internet_on():
     except:
         pass
     return False
-
+def ResetModem():
+    print("Send reset device ttyUSB2")
+    try:
+        ser = serial.Serial('/dev/ttyUSB2', 115200, timeout=3.0 , rtscts=True, dsrdtr=True)
+        ser.flushInput()
+        ser.flushOutput()
+        ser.write(str.encode('AT+QRST=1,0\r'))
+        ser.close()
+        print("wait device start 30 sec ")
+        time.sleep(30)
+    except :
+        print ("Serial Error")
+    print("wait NetworkManager ModemManager restart 60 sec ")
+    os.popen("sudo systemctl restart NetworkManager ModemManager")
+    time.sleep(60)
 
 
 time.sleep(30)
@@ -59,31 +73,12 @@ while(True):
         line = lines[idx]
         if 'tty' in line:
             print(line)
+            foundModem = 1
             
         if 'cdc-wdm' in line:
             print("found cdc-wdm")
-            foundModem = 1
+            #foundModem = 1
 
-    if foundModem == 0:
-        print("Not found cdc-wdm")
-        print("restart NetworkManager ModemManager")
-        os.popen("sudo systemctl restart NetworkManager ModemManager")
-        time.sleep(60)
-
-
-#==================Connection
-    try:
-        byteOutput = subprocess.check_output(['nmcli','device','show'], timeout=2)
-        out = byteOutput.decode('UTF-8').rstrip()
-        #nmcli device show
-    except subprocess.CalledProcessError as e:
-        exit()
-    lines = out.split('\n')
-    if len(lines) < 5 :
-        exit()
-    foundConnection = 0
-    for idx in range(0, len(lines)):
-        line = lines[idx]
         if 'registered' in line:
             print(line)
         
@@ -107,8 +102,12 @@ while(True):
         if 'disconnected' in line:
             print("found disconnected")
             #foundConnection = 0
+    if foundModem == 1:
+        print("found tty")
+        print("restart NetworkManager ModemManager")
+        os.popen("sudo systemctl restart NetworkManager ModemManager")
 
-    if foundConnection == 30:
+    if foundModem == 30:
         print("Not found connected")
         print("Off wwan")
         os.popen("sudo nmcli r wwan off")
@@ -121,7 +120,7 @@ while(True):
         time.sleep(30)
         os.popen("sudo nmcli c mod apn_tely connection.autoconnect yes")
 
-    if foundConnection == 31:
+    if foundModem == 31:
         try:
             driver = "Quectel"
             lsusb_out = Popen("lsusb | grep -i %s"%driver, shell=True, bufsize=64, stdin=PIPE, stdout=PIPE, close_fds=True).stdout.read().strip().split()
@@ -133,7 +132,7 @@ while(True):
             print("failed to reset device:")
         os.popen("sudo systemctl restart NetworkManager ModemManager")
 
-    if foundConnection == 32:
+    if foundModem == 32:
         print("Send reset device")
         try:
             ser = serial.Serial('/dev/ttyUSB2', 115200, timeout=3.0 , rtscts=True, dsrdtr=True)
@@ -146,6 +145,8 @@ while(True):
         except :
             print ("Serial Error")
         os.popen("sudo systemctl restart NetworkManager ModemManager")
+
+
 #==================internet
     if internet_on() :
         print("internet OK")
@@ -153,23 +154,16 @@ while(True):
     else :
         countInternet += 1
         
-    if countInternet > 2:
+    if (countInternet > 2) or (GPIO.input(27) == 1):
+        if(countInternet > 2):
+            print("internet Error")
+        if(GPIO.input(27) == 1):
+            print("LED 3G Error")
         countInternet = 0
-        print ("Reset wwan")
-        try:
-            ser = serial.Serial('/dev/ttyUSB2', 115200, timeout=3.0 , rtscts=True, dsrdtr=True)
-            ser.flushInput()
-            ser.flushOutput()
-            ser.write(str.encode('AT+QRST=1,0\r'))
-            ser.close()
-            print("device reset")
-            time.sleep(30)
-        except :
-            print ("Serial Error")
-        os.popen("sudo systemctl restart NetworkManager ModemManager")
-        print("device reset NetworkManager")
-
+        ResetModem()
+    
+    
         
 
     print("sleep")
-    time.sleep(60)
+    time.sleep(30)
