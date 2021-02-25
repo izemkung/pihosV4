@@ -156,9 +156,19 @@ while(True):
     if countInternet > 2:
         countInternet = 0
         print ("Reset wwan")
-        os.popen("sudo nmcli r wwan off")
-        os.popen("sudo nmcli r wwan on")
-        os.popen("sudo nmcli c up apn_tely")
+        try:
+            ser = serial.Serial('/dev/ttyUSB2', 115200, timeout=3.0 , rtscts=True, dsrdtr=True)
+            ser.flushInput()
+            ser.flushOutput()
+            ser.write(str.encode('AT+QRST=1,0\r'))
+            ser.close()
+            print("device reset")
+            time.sleep(30)
+        except :
+            print ("Serial Error")
+        os.popen("sudo systemctl restart NetworkManager ModemManager")
+        print("device reset NetworkManager")
+
         
 
     print("sleep")
