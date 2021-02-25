@@ -102,7 +102,7 @@ while(True):
             
         if 'apn_tely' in line:
             print("found apn_tely")
-            foundConnection = 0
+            foundConnection = 1
 
         if 'disconnected' in line:
             print("found disconnected")
@@ -133,7 +133,7 @@ while(True):
             print("failed to reset device:")
         os.popen("sudo systemctl restart NetworkManager ModemManager")
 
-    if foundConnection == 32:
+    if foundConnection == 0:
         print("Send reset device")
         try:
             ser = serial.Serial('/dev/ttyUSB2', 115200, timeout=3.0 , rtscts=True, dsrdtr=True)
@@ -155,10 +155,6 @@ while(True):
         
     if countInternet > 2:
         countInternet = 0
-        print ("Reset wwan")
-        os.popen("sudo nmcli r wwan off")
-        os.popen("sudo nmcli r wwan on")
-        os.popen("sudo nmcli c up apn_tely")
         
 
     print("sleep")
