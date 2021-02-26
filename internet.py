@@ -95,35 +95,35 @@ while(True):
     foundModem = 0
     for idx in range(0, len(lines)):
         line = lines[idx]
-        if 'tty' in line:
+        #if 'tty' in line:
             #print(line)
             #foundModem = 1
             
-        if 'cdc-wdm' in line:
+        #if 'cdc-wdm' in line:
             #print("found cdc-wdm")
             #foundModem = 1
 
-        if 'registered' in line:
+        #if 'registered' in line:
             #print(line)
         
-        if 'unavailable' in line:
+        #if 'unavailable' in line:
             #print(line)
             #foundConnection = 30
         
-        if 'enabled' in line:
+        #if 'enabled' in line:
             #print(line)
             #foundConnection = 2
             #os.popen("sudo nmcli c up apn_tely")
             
-        if 'connected' in line:
+        #if 'connected' in line:
             #print("found connected")
             #foundConnection = 1
             
-        if 'apn_tely' in line:
+        #if 'apn_tely' in line:
             #print("found apn_tely")
             #foundConnection = 0
 
-        if 'disconnected' in line:
+        #if 'disconnected' in line:
             #print("found disconnected")
             #foundConnection = 0
     if foundModem == 1:

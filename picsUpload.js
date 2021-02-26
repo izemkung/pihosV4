@@ -152,7 +152,15 @@ async function main()
     {
         programEnd = Date.now() + 3000;
     }
-
+    IO_CAM1.writeSync(1);
+    await wasteTime(1000);
+    IO_CAM1.writeSync(0);
+    await wasteTime(1000);
+    IO_CAM1.writeSync(1);
+    await wasteTime(1000);
+    IO_CAM1.writeSync(0);
+    await wasteTime(1000);
+    IO_CAM1.writeSync(1);
     var GetPicError = 0;
     while(Date.now() < programEnd)
     {
@@ -235,9 +243,9 @@ async function main()
                   });
             }
             arrayCamError.push('Send OK');
-            IO_CAM1.writeSync(1);
+            
             await wasteTime(50);
-            IO_CAM1.writeSync(0);
+            
             LED.writeSync(0);
         }
         //gps.update("$GPGGA,224900.000,4832.3762,N,00903.5393,E,1,04,7.8,498.6,M,48.0,M,,0000*5E");

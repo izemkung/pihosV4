@@ -46,6 +46,8 @@ if internet_on():
         subprocess.check_output('sudo mv /home/pi/tmp /home/pi/pihosV4', shell=True)
     
         print ("FW Ready to use reboot!!!")
+        os.system('sudo mmcli -m 0 -r')
+        time.sleep(0.5)
         os.system('sudo reboot')
 else:
     time.sleep(10)
