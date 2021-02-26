@@ -65,11 +65,13 @@ def cdc_wdmErrorInterface():
     if len(lines) < 5 :
         exit()
 
-    if 'tty' in line:
-        print("fast found tty")
-        print("restart NetworkManager ModemManager")
-        os.popen("sudo systemctl restart NetworkManager ModemManager")
-        time.sleep(30)
+    for idx in range(0, len(lines)):
+        line = lines[idx]
+        if 'tty' in line:
+            print("fast found tty")
+            print("restart NetworkManager ModemManager")
+            os.popen("sudo systemctl restart NetworkManager ModemManager")
+            time.sleep(30)
 
 
 
