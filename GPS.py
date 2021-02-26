@@ -104,108 +104,89 @@ while(internet_on() == False):
 print ('URL > ',gps_url,' ID > ',id)
 gpsp = GpsPoller() # create the thread
 
-gpsp.start() # start it up
-countSend = 0
-countError = 0
-timeout = time.time() + 120
+try:
+  gpsp.start() # start it up
+  countSend = 0
+  countError = 0
+  timeout = time.time() + 120
 
 
-while True:
- 
-  print ('GPS sending Seccess ' , countSend ,' Error ', countError ) 
- 
-  if (str(gpsd.fix.latitude) != 'nan' and str(gpsd.fix.latitude) != '0.0'):
-    GPIO.output(22,True)
-    try:
-      resp = requests.get(gps_url+'/?ambulance_id={0}&tracking_latitude={1:.6f}&tracking_longitude={2:.6f}&tracking_speed={3:.2f}&tracking_heading={4}'.format(id,gpsd.fix.latitude,gpsd.fix.longitude,gpsd.fix.speed,gpsd.fix.track),timeout=(2.05, 5))
-      
-      if(resp.status_code != 200 ):
-        print ('status_code ' , resp.status_code)
-        time.sleep(0.3)
-        GPIO.output(22,False)
-        GpsStatus('code : ' + resp.status_code)
-        timeout = time.time() + 10
-      #print 'headers     ' , resp.headers
-      #print 'content     ' , resp.content
-      #GPIO.output(27,True)
-      if(resp.status_code == 200 ):
-        
-        countSend += 1
-        countError = 0
-        timeout = time.time() + 60 #timeout reset
-        GpsStatus('up')
-      else:
-        print ('respError')
-        countError += 1
-
-    except:
-      print ('exceptError')
-      countError += 1
-      time.sleep(0.5) #set to whatever
-      GPIO.output(22,False)
-  else:
-    countError += 1  
+  while True:
+    print ('GPS sending Seccess ' , countSend ,' Error ', countError ) 
   
-  time.sleep(0.3) #set to whatever
-  GPIO.output(22,False)
-  time.sleep(0.7) #set to whatever
+    if (str(gpsd.fix.latitude) != 'nan' and str(gpsd.fix.latitude) != '0.0'):
+      GPIO.output(22,True)
+      try:
+        resp = requests.get(gps_url+'/?ambulance_id={0}&tracking_latitude={1:.6f}&tracking_longitude={2:.6f}&tracking_speed={3:.2f}&tracking_heading={4}'.format(id,gpsd.fix.latitude,gpsd.fix.longitude,gpsd.fix.speed,gpsd.fix.track),timeout=(2.05, 5))
+        
+        if(resp.status_code != 200 ):
+          print ('status_code ' , resp.status_code)
+          time.sleep(0.3)
+          GPIO.output(22,False)
+          GpsStatus('code : ' + resp.status_code)
+          timeout = time.time() + 10
+        #print 'headers     ' , resp.headers
+        #print 'content     ' , resp.content
+        #GPIO.output(27,True)
+        if(resp.status_code == 200 ):
+          
+          countSend += 1
+          countError = 0
+          timeout = time.time() + 60 #timeout reset
+          GpsStatus('up')
+        else:
+          print ('respError')
+          countError += 1
 
-  if (time.time() > timeout):
+      except:
+        print ('exceptError')
+        countError += 1
+        time.sleep(0.5) #set to whatever
+        GPIO.output(22,False)
+    else:
+      countError += 1  
     
-    print ("Timeout")
-    GpsStatus('Timeout')
-    for count in range(0, 5):
-      time.sleep(0.5)
-      GPIO.output(22,True)
-      time.sleep(2)
-      GPIO.output(22,False)
-    #break
-    
-  if (countError > 30):
-    
-    GpsStatus('countError')
-    print ("countError")
-    for count in range(0, 10):
-      time.sleep(0.2)
-      GPIO.output(22,True)
-      time.sleep(0.2)
-      GPIO.output(22,False)
-    #break
+    time.sleep(0.3) #set to whatever
+    GPIO.output(22,False)
+    time.sleep(0.7) #set to whatever
+
+    if (time.time() > timeout):
+      
+      print ("Timeout")
+      GpsStatus('Timeout')
+      for count in range(0, 5):
+        time.sleep(0.5)
+        GPIO.output(22,True)
+        time.sleep(2)
+        GPIO.output(22,False)
+      #break
+      
+    if (countError > 30):
+      
+      GpsStatus('countError')
+      print ("countError")
+      for count in range(0, 10):
+        time.sleep(0.2)
+        GPIO.output(22,True)
+        time.sleep(0.2)
+        GPIO.output(22,False)
+      #break
+
+except (KeyboardInterrupt, SystemExit):
+  threadingOut = True
+  gpsp.running = False
+  gpsp.join() # wait for the thread to finish what it's doing
+  GPIO.output(22,False)
+  GPIO.cleanup()
+  print ("Done.\nExiting.")
 
 threadingOut = True
 gpsp.running = False
-#gpsp.join() # wait for the thread to finish what it's doing
+gpsp.join() # wait for the thread to finish what it's doing
 GPIO.output(22,False)
 GPIO.cleanup()
 print ("Done.\nExiting.")
-exit()
-
-  #print 'altitude (m)' , gpsd.fix.altitude
-    #print 'eps         ' , gpsd.fix.eps
-    #print 'epx         ' , gpsd.fix.epx
-    #print 'epv         ' , gpsd.fix.epv
-    #print 'ept         ' , gpsd.fix.ept
-    #print 'speed (m/s) ' , gpsd.fix.speed
-    #print 'climb       ' , gpsd.fix.climb
-    #print 'track       ' , gpsd.fix.track
-    #print 'mode        ' , gpsd.fix.mode
-    #print
-    #print 'sats        ' , gpsd.satellites
-    
   
-  #r = urllib.request.urlopen('https://api.github.com', auth=('user', 'pass'))
-  #var r = requests.get('http://www.google.com')
-  
-    
-
-#except (KeyboardInterrupt, SystemExit): #when you press ctrl+c
-  #print "\nKilling Thread..."
-  #gpsp.running = False
-  #gpsp.join() # wait for the thread to finish what it's doing
-  #GPIO.output(27,False)
-  #GPIO.output(22,False)
-  #GPIO.cleanup()
-  #exit()
 
 
 
