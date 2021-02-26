@@ -76,7 +76,7 @@ def cdc_wdmErrorInterface():
 
 
 time.sleep(30)
-    cdc_wdmErrorInterface()
+cdc_wdmErrorInterface()
 while(True):
 #==================Modem
     try:
