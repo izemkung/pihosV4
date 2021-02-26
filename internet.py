@@ -51,8 +51,30 @@ def ResetModem():
     os.popen("sudo systemctl restart NetworkManager ModemManager")
     time.sleep(60)
 
+def cdc_wdmErrorInterface():
+    try:
+        byteOutput = subprocess.check_output(['nmcli','device','show'], timeout=2)
+        out = byteOutput.decode('UTF-8').rstrip()
+        #nmcli device show
+    except subprocess.CalledProcessError as e:
+        print("Error cdc-wdm0", e.output)
+        exit()
+
+    lines = out.split('\n')
+
+    if len(lines) < 5 :
+        exit()
+
+    if 'tty' in line:
+        print("fast found tty")
+        print("restart NetworkManager ModemManager")
+        os.popen("sudo systemctl restart NetworkManager ModemManager")
+        time.sleep(30)
+
+
 
 time.sleep(30)
+    cdc_wdmErrorInterface()
 while(True):
 #==================Modem
     try:
@@ -145,6 +167,7 @@ while(True):
         except :
             print ("Serial Error")
         os.popen("sudo systemctl restart NetworkManager ModemManager")
+        time.sleep(30)
 
 
 #==================internet
