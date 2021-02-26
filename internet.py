@@ -16,7 +16,6 @@ import pymongo
 
 USBDEVFS_RESET= 21780
 
-
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(27, GPIO.IN)#3G
@@ -38,17 +37,18 @@ def internet_on():
 def ResetModem():
     print("Send reset device ttyUSB2")
     try:
-        ser = serial.Serial('/dev/ttyUSB2', 115200, timeout=3.0 , rtscts=True, dsrdtr=True)
-        ser.flushInput()
-        ser.flushOutput()
-        ser.write(str.encode('AT+QRST=1,0\r'))
-        ser.close()
-        print("wait device start 30 sec ")
-        time.sleep(30)
+        #ser = serial.Serial('/dev/ttyUSB2', 115200, timeout=3.0 , rtscts=True, dsrdtr=True)
+        #ser.flushInput()
+        #ser.flushOutput()
+        #ser.write(str.encode('AT+QRST=1,0\r'))
+        #os.popen("sudo mmcli -m 0 -r") #restart Modem
+        #ser.close()
+        #print("wait device start 30 sec ")
+        time.sleep(3)
     except :
         print ("Serial Error")
     print("wait NetworkManager ModemManager restart 60 sec ")
-    os.popen("sudo systemctl restart NetworkManager ModemManager")
+    #os.popen("sudo systemctl restart NetworkManager ModemManager")
     time.sleep(60)
 
 def cdc_wdmErrorInterface():
@@ -96,35 +96,35 @@ while(True):
     for idx in range(0, len(lines)):
         line = lines[idx]
         if 'tty' in line:
-            print(line)
-            foundModem = 1
+            #print(line)
+            #foundModem = 1
             
         if 'cdc-wdm' in line:
-            print("found cdc-wdm")
+            #print("found cdc-wdm")
             #foundModem = 1
 
         if 'registered' in line:
-            print(line)
+            #print(line)
         
         if 'unavailable' in line:
-            print(line)
+            #print(line)
             #foundConnection = 30
         
         if 'enabled' in line:
-            print(line)
+            #print(line)
             #foundConnection = 2
             #os.popen("sudo nmcli c up apn_tely")
             
         if 'connected' in line:
-            print("found connected")
+            #print("found connected")
             #foundConnection = 1
             
         if 'apn_tely' in line:
-            print("found apn_tely")
-            foundConnection = 0
+            #print("found apn_tely")
+            #foundConnection = 0
 
         if 'disconnected' in line:
-            print("found disconnected")
+            #print("found disconnected")
             #foundConnection = 0
     if foundModem == 1:
         print("found tty")
@@ -185,7 +185,7 @@ while(True):
         if(GPIO.input(27) == 1):
             print("LED 3G Error")
         countInternet = 0
-        ResetModem()
+        #ResetModem()
     
     
         

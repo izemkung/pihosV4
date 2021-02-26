@@ -11,6 +11,7 @@ var request = require('request');
 const fs = require('fs');
 var Gpio = require('onoff').Gpio; //include onoff to interact with the GPIO
 var LED = new Gpio(17, 'out'); //use GPIO pin 17 PC, and specify that it is output
+var IO_CAM1 = new Gpio(8, 'out');
 var mongo = require('mongodb');
 var mongoClient = require('mongodb').MongoClient;
 var urlMongo = "mongodb://127.0.0.1:27017/";//currentPicURL
@@ -21,6 +22,7 @@ var  SERIAL_PORT = "/dev/ttyS0";
 var ping = require('ping');
 var hosts = ['192.168.100.201', '192.168.100.202', '192.168.100.203', '192.168.100.204'];
 var arrayCamOnline = [];
+var arrayCamErrorCount = [];
 
 var countSend = 0;
 const timeLoop = 2000;
@@ -28,6 +30,8 @@ const timeLoop = 2000;
 var carID = 99;
 var server = "";
 var numCamera = "";
+IO_CAM1.writeSync(1);
+
 readConfigs();
 
 function readConfigs() {
@@ -164,6 +168,7 @@ async function main()
         arrayResult.push(result3);
         arrayResult.push(result4);
 
+        var countCam = 0;
         for (let cam of arrayResult) {
             //const result1 = await runServiceCamGetPic(cam);
 
@@ -180,6 +185,7 @@ async function main()
                 await wasteTime(100);
                 LED.writeSync(0);
                 GetPicError += 1;
+                arrayCamErrorCount[countCam] += 1;
             }else if(cam.Data == 'NULL')
             {
 
@@ -190,15 +196,16 @@ async function main()
                 {
                     arrayCamError.push(cam.Name +' Ok')
                     arrayCamPic.push(cam);
+                    arrayCamErrorCount[countCam] = 0;
                 }else{
                     console.log('Size error');
                     //console.log(size);
                 }
             }
+            countCam+=1;
         }
         //const result2 = await runServiceCamGetPic('CAM2') 
         //arrayCamPic.push(result2);
-        
         //console.log(result2); 
         
         if(arrayCamPic.length > 0)
@@ -228,7 +235,9 @@ async function main()
                   });
             }
             arrayCamError.push('Send OK');
+            IO_CAM1.writeSync(1);
             await wasteTime(50);
+            IO_CAM1.writeSync(0);
             LED.writeSync(0);
         }
         //gps.update("$GPGGA,224900.000,4832.3762,N,00903.5393,E,1,04,7.8,498.6,M,48.0,M,,0000*5E");
