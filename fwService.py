@@ -47,7 +47,7 @@ if internet_on():
     
         print ("FW Ready to use reboot!!!")
         os.system('sudo mmcli -m 0 -r')
-        time.sleep(0.5)
+        time.sleep(2)
         os.system('sudo reboot')
 else:
     time.sleep(10)

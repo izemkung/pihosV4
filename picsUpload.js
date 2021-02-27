@@ -25,8 +25,8 @@ var arrayCamOnline = [];
 var arrayCamErrorCount = [];
 
 var countSend = 0;
-const timeLoop = 2000;
-
+const timeLoop = 3000;
+var timeStartResetCAM = [];
 var carID = 99;
 var server = "";
 var numCamera = "";
@@ -199,15 +199,14 @@ async function main()
 
             }else{
                 var size = sizeof(cam);
-                console.log(size);
+                //console.log(size);
                 if(size > 100000)
                 {
                     arrayCamError.push(cam.Name +' Ok')
                     arrayCamPic.push(cam);
                     arrayCamErrorCount[countCam] = 0;
                 }else{
-                    console.log('Size error');
-                    //console.log(size);
+                    //console.log('Size error');
                 }
             }
             countCam+=1;
@@ -230,7 +229,7 @@ async function main()
                     arrayCamError.push('Send Error')
                     GetPicError += 1;
                 }
-                console.log('Time:'+((programEnd - Date.now())/1000  )+ ' Count:'+countSend +' Code:', httpResponse && httpResponse.statusCode);
+                console.log('Time:'+((programEnd - Date.now())/1000  )+ ' Count:'+countSend + ' Size: '+ sizeof(arrayCamPic) +'Code:', httpResponse && httpResponse.statusCode);
             })
             const form = r.form();
             form.append('ID', carID);
@@ -256,7 +255,7 @@ async function main()
         }
         
         camStatus(arrayCamError);
-        await sleep(timeLoop -  programLoopTimeDiff);
+        await wasteTime(timeLoop -  programLoopTimeDiff);
 
         console.log('loop ' + (Date.now() - programLoopTime) +' ms timeDiff ' + programLoopTimeDiff + ' ms.') 
 
@@ -264,14 +263,11 @@ async function main()
         {
             programEnd = Date.now() + 30000;
         }
-
         if(GetPicError > 20) 
         {
             GetPicError = 0;
             programEnd = Date.now() + 1000;
         }
-
-
     }
     
    
