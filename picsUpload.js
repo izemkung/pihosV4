@@ -25,10 +25,11 @@ var  SERIAL_PORT = "/dev/ttyS0";
 var ping = require('ping');
 var hosts = ['192.168.100.201', '192.168.100.202', '192.168.100.203', '192.168.100.204'];
 var arrayCamOnline = [];
-var arrayCamErrorCount = [];
+
 
 var countSend = 0;
 const timeLoop = 3000;
+var arrayCamErrorCount = [0,0,0,0];
 var timeStartResetCAM = [0,0,0,0];
 var carID = 99;
 var server = "";
