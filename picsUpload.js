@@ -29,7 +29,7 @@ var arrayCamErrorCount = [];
 
 var countSend = 0;
 const timeLoop = 3000;
-var timeStartResetCAM = [];
+var timeStartResetCAM = [0,0,0,0];
 var carID = 99;
 var server = "";
 var numCamera = "";
