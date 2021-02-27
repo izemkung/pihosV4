@@ -274,7 +274,7 @@ async function main()
             if(arrayCamErrorCount[iCount] > 10 )
             {
                 arrayCamErrorCount[iCount] = 0;
-                console.log('CAM'+ (iCount+1) + ' Error');
+                console.log('-------------CAM'+ (iCount+1) + ' Reset I/O----------------');
 
                 if((Date.now() - timeStartResetCAM[iCount]) > 60000)
                 {
@@ -282,6 +282,8 @@ async function main()
 
                     if(iCount == 0)
                     {
+                        console.log('CAM'+ (iCount+1) + ' Reset');
+
                         IO_CAM1.writeSync(0);
                         await wasteTime(1000);
                         IO_CAM1.writeSync(1);           
