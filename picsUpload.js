@@ -12,6 +12,9 @@ const fs = require('fs');
 var Gpio = require('onoff').Gpio; //include onoff to interact with the GPIO
 var LED = new Gpio(17, 'out'); //use GPIO pin 17 PC, and specify that it is output
 var IO_CAM1 = new Gpio(8, 'out');
+//var IO_CAM2 = new Gpio(9, 'out');
+//var IO_CAM3 = new Gpio(11, 'out');
+//var IO_CAM4 = new Gpio(25, 'out');
 var mongo = require('mongodb');
 var mongoClient = require('mongodb').MongoClient;
 var urlMongo = "mongodb://127.0.0.1:27017/";//currentPicURL
@@ -30,6 +33,7 @@ var timeStartResetCAM = [];
 var carID = 99;
 var server = "";
 var numCamera = "";
+
 IO_CAM1.writeSync(1);
 
 readConfigs();
@@ -152,15 +156,7 @@ async function main()
     {
         programEnd = Date.now() + 3000;
     }
-    IO_CAM1.writeSync(1);
-    await wasteTime(1000);
-    IO_CAM1.writeSync(0);
-    await wasteTime(1000);
-    IO_CAM1.writeSync(1);
-    await wasteTime(1000);
-    IO_CAM1.writeSync(0);
-    await wasteTime(1000);
-    IO_CAM1.writeSync(1);
+    
     var GetPicError = 0;
     while(Date.now() < programEnd)
     {
@@ -177,6 +173,7 @@ async function main()
         arrayResult.push(result4);
 
         var countCam = 0;
+        var sizeOfPic = 0;
         for (let cam of arrayResult) {
             //const result1 = await runServiceCamGetPic(cam);
 
@@ -202,6 +199,7 @@ async function main()
                 //console.log(size);
                 if(size > 100000)
                 {
+                    sizeOfPic += size;
                     arrayCamError.push(cam.Name +' Ok')
                     arrayCamPic.push(cam);
                     arrayCamErrorCount[countCam] = 0;
@@ -229,7 +227,7 @@ async function main()
                     arrayCamError.push('Send Error')
                     GetPicError += 1;
                 }
-                console.log('Time:'+((programEnd - Date.now())/1000  )+ ' Count:'+countSend + ' Size: '+ sizeof(arrayCamPic) +'Code:', httpResponse && httpResponse.statusCode);
+                console.log('Time:'+((programEnd - Date.now())/1000  )+ ' Count:'+countSend + ' Size: '+ (sizeOfPic/1000) +' kb Code:', httpResponse && httpResponse.statusCode);
             })
             const form = r.form();
             form.append('ID', carID);
@@ -257,7 +255,7 @@ async function main()
         camStatus(arrayCamError);
         await wasteTime(timeLoop -  programLoopTimeDiff);
 
-        console.log('loop ' + (Date.now() - programLoopTime) +' ms timeDiff ' + programLoopTimeDiff + ' ms.') 
+        //console.log('loop ' + (Date.now() - programLoopTime) +' ms timeDiff ' + programLoopTimeDiff + ' ms.') 
 
         if(GetPicError < 20) 
         {
@@ -268,6 +266,32 @@ async function main()
             GetPicError = 0;
             programEnd = Date.now() + 1000;
         }
+
+        //Reset Cam
+
+        for (var iCount =0; iCount < 4 ; iCount++) 
+        {
+            if(arrayCamErrorCount[iCount] > 10 )
+            {
+                arrayCamErrorCount[iCount] = 0;
+                console.log('CAM'+ (iCount+1) + ' Error');
+
+                if((Date.now() - timeStartResetCAM[iCount]) > 60000)
+                {
+                    timeStartResetCAM[iCount] = Date.now(); 
+
+                    if(iCount == 0)
+                    {
+                        IO_CAM1.writeSync(0);
+                        await wasteTime(1000);
+                        IO_CAM1.writeSync(1);           
+                    }
+                     
+                }
+                
+            }
+        }
+        
     }
     
    
