@@ -70,7 +70,7 @@ def cdc_wdmErrorInterface():
         if 'tty' in line:
             print("fast found tty")
             print("restart NetworkManager ModemManager")
-            os.popen("sudo systemctl restart NetworkManager ModemManager")
+            #os.popen("sudo systemctl restart NetworkManager ModemManager")
             time.sleep(30)
 
 
