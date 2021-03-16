@@ -146,6 +146,7 @@ def get_Modem_info(ser,cmd):
     res = []
     lines = ''
     cmd = cmd + '\r'
+   
     ser.flushInput()
     ser.flushOutput()
     ser.write(str.encode(cmd))
@@ -182,6 +183,11 @@ def networkStatus():
     db_pihos_status = db_pihos.status
 
     ser = serial.Serial('/dev/ttyUSB2', 115200, timeout=0.1 , rtscts=True, dsrdtr=True)
+    ser.write(str.encode('AT\r'))
+    time.sleep(0.5)
+    ser.flushInput()
+    ser.flushOutput()
+    
     newvalues = {}
     accessTech = get_Modem_info(ser,'AT+QNWINFO')[0].split(',')
     newvalues['accessTech'] = accessTech[0][accessTech[0].find('"')+1:-1]  +' ' +accessTech[2].strip('"')
