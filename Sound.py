@@ -55,7 +55,6 @@ import vlc
 player = vlc.MediaPlayer("alert.mp3")
 player.audio_set_volume(sound_level)
 
-sound = "True"
 if(sound == "False"):
     time.sleep(100)
     exit()

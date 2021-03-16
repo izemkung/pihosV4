@@ -35,6 +35,9 @@ var server = "";
 var numCamera = "";
 
 IO_CAM1.writeSync(1);
+IO_CAM2.writeSync(1);
+IO_CAM3.writeSync(1);
+IO_CAM4.writeSync(1);
 
 readConfigs();
 
@@ -287,6 +290,33 @@ async function main()
                         IO_CAM1.writeSync(0);
                         await wasteTime(1000);
                         IO_CAM1.writeSync(1);           
+                    }
+
+                    if(iCount == 1)
+                    {
+                        console.log('CAM'+ (iCount+1) + ' Reset');
+
+                        IO_CAM2.writeSync(0);
+                        await wasteTime(1000);
+                        IO_CAM2.writeSync(1);           
+                    }
+
+                    if(iCount == 2)
+                    {
+                        console.log('CAM'+ (iCount+1) + ' Reset');
+
+                        IO_CAM3.writeSync(0);
+                        await wasteTime(1000);
+                        IO_CAM3.writeSync(1);           
+                    }
+
+                    if(iCount == 3)
+                    {
+                        console.log('CAM'+ (iCount+1) + ' Reset');
+
+                        IO_CAM4.writeSync(0);
+                        await wasteTime(1000);
+                        IO_CAM4.writeSync(1);           
                     }
                      
                 }
