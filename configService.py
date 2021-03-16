@@ -82,17 +82,59 @@ def getCPUInfo():
         pass
     return res
 
+def get_Modem_info(ser,cmd):
+    res = []
+    lines = ''
+    cmd = cmd + '\r'
+   
+    ser.flushInput()
+    ser.flushOutput()
+    ser.write(str.encode(cmd))
+    #time.sleep(0.5)
+    lines = ser.readlines()
+    
+
+    if lines == '':  # timeout
+        print("timeout")
+
+    for idx in range(0, len(lines)):
+        line = lines[idx].decode("utf-8") 
+        if(line != '\r\n'):
+            res.append(line.replace("\r\n", ""))
+
+    return res
 
 def getConfig():
     global myconfig
     if internet_on() == False:
         return
    
+    IMEI = 'null'
     try:
         ser = serial.Serial('/dev/ttyUSB2', 115200, timeout=0.1 , rtscts=True, dsrdtr=True)
+        time.sleep(0.5)
+        ser.write(str.encode('AT\r'))
+        ser.write(str.encode('AT\r'))
+        time.sleep(0.5)
+        print(ser.readlines());
+        ser.flushInput()
+        ser.flushOutput()
+
+
+
         IMEI = get_Modem_info(ser,'AT+CGSN')[0]
         ser.close()
-        print ( 'Read Configs ', IMEI )
+    except:
+        print ( 'serial Error' )
+        return
+
+    if(len(IMEI) < 10):
+        print ( 'IMEI error' )
+        return
+
+    print ( 'Read Configs ', IMEI )
+
+    try:
         webConfig = requests.get('http://159.89.208.90:5000/config/' + IMEI)
         webConfig = webConfig.json()
     except:
@@ -142,27 +184,6 @@ def getConfig():
     print (configs)
     mongoConn.close()
 
-def get_Modem_info(ser,cmd):
-    res = []
-    lines = ''
-    cmd = cmd + '\r'
-   
-    ser.flushInput()
-    ser.flushOutput()
-    ser.write(str.encode(cmd))
-    #time.sleep(0.5)
-    lines = ser.readlines()
-    
-
-    if lines == '':  # timeout
-        print("timeout")
-
-    for idx in range(0, len(lines)):
-        line = lines[idx].decode("utf-8") 
-        if(line != '\r\n'):
-            res.append(line.replace("\r\n", ""))
-
-    return res
 
 def networkStatus():
     global myconfig
@@ -187,7 +208,7 @@ def networkStatus():
     time.sleep(0.5)
     ser.flushInput()
     ser.flushOutput()
-    
+
     newvalues = {}
     accessTech = get_Modem_info(ser,'AT+QNWINFO')[0].split(',')
     newvalues['accessTech'] = accessTech[0][accessTech[0].find('"')+1:-1]  +' ' +accessTech[2].strip('"')
