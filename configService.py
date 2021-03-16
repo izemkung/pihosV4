@@ -114,9 +114,9 @@ def getConfig():
         ser = serial.Serial('/dev/ttyUSB2', 115200, timeout=0.1 , rtscts=True, dsrdtr=True)
         time.sleep(0.5)
         ser.write(str.encode('AT\r'))
-        ser.write(str.encode('AT\r'))
+        ser.write(str.encode('ATE\r'))
         time.sleep(0.5)
-        print(ser.readlines());
+        print(ser.readlines())
         ser.flushInput()
         ser.flushOutput()
 
@@ -305,4 +305,18 @@ while(True):
         lastTimeTask3 = currentTime + 60
         sendStatusPack( 'online', (currentTime - timeStart)/60 )
 
-    
+    if(GPIO.input(4) == 0):
+        sendStatusPack( 'Power Off', (currentTime - timeStart)/60 )
+        print("Pi Power Off Process!!")
+        time.sleep(1)
+        i = 0
+        while( i < 20):
+            i += 1
+            time.sleep(0.2)
+            GPIO.output(17,True)
+            time.sleep(0.2)
+            GPIO.output(17,False)
+        os.system('sudo shutdown -h now')
+        break
+
+    time.sleep(2)

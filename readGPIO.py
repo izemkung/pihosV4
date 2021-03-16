@@ -25,20 +25,8 @@ print("LED 3G GPIO(27)")
 print(GPIO.input(27))
 
 while True:
-    if(GPIO.input(4) == 0):
-        sendStatusPack( 'Power Off', (currentTime - timeStart)/60 )
-        print("Pi Power Off Process!!")
-        time.sleep(1)
-        i = 0
-        while( i < 20):
-            i += 1
-            time.sleep(0.2)
-            GPIO.output(17,True)
-            time.sleep(0.2)
-            GPIO.output(17,False)
-        os.system('sudo shutdown -h now')
-        break
+    
 
-    time.sleep(1)
+    time.sleep(100)
 
        
