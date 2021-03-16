@@ -12,16 +12,15 @@ const fs = require('fs');
 var Gpio = require('onoff').Gpio; //include onoff to interact with the GPIO
 var LED = new Gpio(17, 'out'); //use GPIO pin 17 PC, and specify that it is output
 var IO_CAM1 = new Gpio(8, 'out');
-//var IO_CAM2 = new Gpio(9, 'out');
-//var IO_CAM3 = new Gpio(11, 'out');
-//var IO_CAM4 = new Gpio(25, 'out');
+var IO_CAM2 = new Gpio(9, 'out');
+var IO_CAM3 = new Gpio(10, 'out');
+var IO_CAM4 = new Gpio(11, 'out');
 var mongo = require('mongodb');
 var mongoClient = require('mongodb').MongoClient;
 var urlMongo = "mongodb://127.0.0.1:27017/";//currentPicURL
 
 const { Worker } = require('worker_threads') 
 
-var  SERIAL_PORT = "/dev/ttyS0";
 var ping = require('ping');
 var hosts = ['192.168.100.201', '192.168.100.202', '192.168.100.203', '192.168.100.204'];
 var arrayCamOnline = [];

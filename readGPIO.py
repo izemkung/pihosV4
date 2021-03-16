@@ -22,4 +22,8 @@ GPIO.setmode(GPIO.BCM)
 GPIO.setup(27, GPIO.IN)#3G
 print("LED 3G GPIO(27)")
 print(GPIO.input(27))
+
+while True:
+    time.sleep(600)
+
        
