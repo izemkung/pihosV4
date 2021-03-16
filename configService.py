@@ -114,7 +114,7 @@ def getConfig():
         ser = serial.Serial('/dev/ttyUSB2', 115200, timeout=0.1 , rtscts=True, dsrdtr=True)
         time.sleep(0.5)
         ser.write(str.encode('AT\r'))
-        ser.write(str.encode('ATE\r'))
+        ser.write(str.encode('ATE0\r'))
         time.sleep(0.5)
         print(ser.readlines())
         ser.flushInput()
