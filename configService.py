@@ -13,6 +13,8 @@ import inspect
 import json
 import re
 import pymongo
+from netifaces import interfaces, ifaddresses, AF_INET
+
 
 REMOTE_SERVER = "www.google.com"
 myconfig = ''
@@ -29,63 +31,6 @@ def internet_on():
     except:
         pass
     return False
-
-def getModemInfo(cmd):
-    res = {}
-    out = ''
-    try:
-        byteOutput = subprocess.check_output(cmd, timeout=2)
-        out = byteOutput.decode('UTF-8').rstrip()
-    except subprocess.CalledProcessError as e:
-        print("Error in mmcli -m 0", e.output)
-        return "error"
-
-    lines = out.split('\n')
-
-    if len(lines) < 5 :
-         return "error"
-
-    for idx in range(0, len(lines)):
-        
-        line = lines[idx]
-        #print(line)
-            
-        if '--------------------------' in line:
-            cur_sys = None
-            cur_subsys = None
-            #print('None')
-            continue
-
-        if '|' not in line:
-            continue
-
-        if len(line.strip()) == 0:
-            continue
-
-        first_idx = line.find('|')
-        if first_idx > 0:
-            sys = re.search('([\w\d\s]+)', line[:first_idx]).group(1)
-            sys = sys.strip()
-            if sys != '':
-                cur_sys = sys
-                res[cur_sys] = {}
-
-            second_idx = line.find(':')
-            if second_idx >= first_idx:
-                subsys = re.search('([\w\d\s]+)', line[first_idx:second_idx]).group(1)
-                subsys = subsys.strip()
-                if subsys != '':
-                    cur_subsys = subsys
-                    res[cur_sys][cur_subsys] = ''
-
-                val = line[second_idx:].strip().strip(':').strip().strip('\'').strip()
-                res[cur_sys][cur_subsys] = val
-
-            elif second_idx == -1:
-                val = line.strip().strip('\'').strip('|').strip()
-                if val != '':
-                    res[cur_sys][cur_subsys] = res[cur_sys][cur_subsys] + ', ' + val
-    return res
 
 def getCPUInfo():
     res = {}
@@ -137,22 +82,21 @@ def getCPUInfo():
         pass
     return res
 
+
 def getConfig():
     global myconfig
     if internet_on() == False:
         return
-
-    print ( 'Read Configs' )
    
-    modeminfo = getModemInfo(['mmcli','-m','0'])
-    if(modeminfo == "error"):
-        print ('Modem Error') 
-        return
-    
     try:
-        webConfig = requests.get('http://159.89.208.90:5000/config/' + modeminfo['Hardware']['equipment id'])
+        ser = serial.Serial('/dev/ttyUSB2', 115200, timeout=0.1 , rtscts=True, dsrdtr=True)
+        IMEI = get_Modem_info(ser,'AT+CGSN')[0]
+        ser.close()
+        print ( 'Read Configs ', IMEI )
+        webConfig = requests.get('http://159.89.208.90:5000/config/' + IMEI)
         webConfig = webConfig.json()
     except:
+        print ( 'Read Configs Error' )
         return
 
     del webConfig['_id']
@@ -169,7 +113,7 @@ def getConfig():
             currentID = line[first_idx:].strip('\n')
            
             if( currentID != webConfig['id'] ):
-                print("Update SSID")
+                print("Update Wifi SSID")
                 string_list[idx] = 'ssid=AOC_' + webConfig['id'] + '\n'
                 print(string_list[idx])
                 my_file = open("/etc/hostapd/hostapd.conf", "w")
@@ -180,7 +124,7 @@ def getConfig():
                 print("Reboot hostapd Service")
                 #reconnect camera
             else:
-                print("SSID Ok.")
+                print("Wifi SSID Ok.")
 
     mongoConn = pymongo.MongoClient()
     db_pihos = mongoConn.pihos #test is my database
@@ -197,27 +141,38 @@ def getConfig():
     print ('Read current configs ')
     print (configs)
     mongoConn.close()
+
+def get_Modem_info(ser,cmd):
+    res = []
+    lines = ''
+    cmd = cmd + '\r'
+    ser.flushInput()
+    ser.flushOutput()
+    ser.write(str.encode(cmd))
+    #time.sleep(0.5)
+    lines = ser.readlines()
     
+
+    if lines == '':  # timeout
+        print("timeout")
+
+    for idx in range(0, len(lines)):
+        line = lines[idx].decode("utf-8") 
+        if(line != '\r\n'):
+            res.append(line.replace("\r\n", ""))
+
+    return res
+
 def networkStatus():
     global myconfig
     if internet_on() == False:
         return
 
     try:
-        modeminfo = getModemInfo(['mmcli','-m','0'])
-        siminfo = getModemInfo(['mmcli','-i','0'])
-        bearrerinfo = getModemInfo(['mmcli','-b',modeminfo['Bearer']['dbus path'][38:].strip('\n')])
         cpuinfo = getCPUInfo()
     except:
         return
-    #print (cpuinfo)
 
-    if(modeminfo == "error"):
-        print ('Modem Error') 
-    if(siminfo == "error"):
-        print ('sim Error') 
-    if(bearrerinfo == "error"):
-        print ('bearrerinfo Error') 
     if(cpuinfo == "error"):
         print ('cpuinfo Error')
 
@@ -225,16 +180,27 @@ def networkStatus():
     mongoConn = pymongo.MongoClient()
     db_pihos = mongoConn.pihos #test is my database
     db_pihos_status = db_pihos.status
+
+    ser = serial.Serial('/dev/ttyUSB2', 115200, timeout=0.1 , rtscts=True, dsrdtr=True)
     newvalues = {}
-    newvalues['accessTech'] = modeminfo['Status']['access tech']
-    newvalues['imei'] = modeminfo['Hardware']['equipment id']
-    newvalues['modem'] = modeminfo['Hardware']['manufacturer'] +' ' + modeminfo['Hardware']['revision'] 
-    newvalues['sinnalQuality'] = modeminfo['Status']['signal quality']
-    newvalues['imsi'] = siminfo['Properties']['imsi']
-    newvalues['iccid'] = siminfo['Properties']['iccid']
-    newvalues['operator'] = modeminfo['3GPP']['operator name'] +' ' +siminfo['Properties']['operator name']
-    newvalues['apn'] = bearrerinfo['Properties']['apn']
-    newvalues['ip'] = bearrerinfo['IPv4 configuration']['address']
+    accessTech = get_Modem_info(ser,'AT+QNWINFO')[0].split(',')
+    newvalues['accessTech'] = accessTech[0][accessTech[0].find('"')+1:-1]  +' ' +accessTech[2].strip('"')
+    modem = get_Modem_info(ser,'ATI')
+    newvalues['modem'] = modem[0] +' '+modem[1]+' '+modem[2][modem[2].find(' '):]
+    sinnal = get_Modem_info(ser,'AT+CSQ')
+    newvalues['sinnalQuality'] = sinnal[0][sinnal[0].find(' '):].strip()
+    newvalues['imei'] = get_Modem_info(ser,'AT+CGSN')[0]
+    newvalues['imsi'] = get_Modem_info(ser,'AT+CIMI')[0]
+    ccid = get_Modem_info(ser,'AT+QCCID')
+    newvalues['iccid'] = ccid[0][ccid[0].find(' '):].strip()
+    operator = get_Modem_info(ser,'AT+QSPN')[0].split(',')
+    newvalues['operator'] = operator[2].strip('"') +' '+ operator[1].strip('"')
+    addresses = [i['addr'] for i in ifaddresses('wwan0').setdefault(AF_INET, [{'addr':'No IP addr'}] )]
+    newvalues['ip'] = addresses[0]
+    
+    ser.close()
+
+    #newvalues['apn'] = bearrerinfo['Properties']['apn']
     newvalues['model'] = cpuinfo['Model']
     newvalues['tepm'] = cpuinfo['Tepm']
     newvalues['cpu'] = cpuinfo['CPU']
@@ -247,7 +213,7 @@ def networkStatus():
     print (status)
 
 def sendStatusPack(msg,time):
-    print ('Read status ')
+    print ('Send Status Packet ')
     mongoConn = pymongo.MongoClient()
     db_pihos = mongoConn.pihos #test is my database
     db_pihos_status = db_pihos.status #Here spam is my collection
@@ -289,15 +255,13 @@ GPIO.setup(17,GPIO.OUT) # LED Red
 GPIO.add_event_detect(18, GPIO.RISING, callback=SendAlartFun, bouncetime=100)
 
 
-lastTimeTask1 = time.time()
+lastTimeTask1 = time.time() + 600
 lastTimeTask2 = time.time()
-lastTimeTask3 = time.time()
+lastTimeTask3 = time.time() +20
 timeStart = time.time()
 
 getConfig()
 sendStatusPack('Power on',0)
-
-
 
 while(True):         
 
