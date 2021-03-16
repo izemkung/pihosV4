@@ -85,7 +85,7 @@ def getCPUInfo():
 def get_Modem_info(ser,cmd):
     res = []
     lines = ''
-    cmd = cmd + '\r'
+    cmd = cmd + '\r\n'
    
     ser.flushInput()
     ser.flushOutput()
@@ -102,6 +102,7 @@ def get_Modem_info(ser,cmd):
         if(line != '\r\n'):
             res.append(line.replace("\r\n", ""))
 
+    #print(res)
     return res
 
 def getConfig():
@@ -113,15 +114,9 @@ def getConfig():
     try:
         ser = serial.Serial('/dev/ttyUSB2', 115200, timeout=0.1 , rtscts=True, dsrdtr=True)
         time.sleep(0.5)
-        ser.write(str.encode('AT\r'))
-        ser.write(str.encode('ATE0\r'))
+        get_Modem_info(ser,'AT')
+        get_Modem_info(ser,'ATE0')
         time.sleep(0.5)
-        print(ser.readlines())
-        ser.flushInput()
-        ser.flushOutput()
-
-
-
         IMEI = get_Modem_info(ser,'AT+CGSN')[0]
         ser.close()
     except:
