@@ -32,6 +32,7 @@ var arrayCamErrorCount = [0,0,0,0];
 var timeStartResetCAM = [0,0,0,0];
 var carID = 99;
 var server = "";
+var apiVersion = "";
 var numCamera = "";
 
 IO_CAM1.writeSync(1);
@@ -60,7 +61,7 @@ function readConfigs() {
             carID = _res['id'];
             numCamera  = _res['camN'];
             server = _res['server'];
-
+            apiVersion = _res['apiVersion'];
 
             db.close();
         });

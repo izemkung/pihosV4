@@ -149,9 +149,9 @@ def getConfig():
             first_idx = line.find('_') + 1
             currentID = line[first_idx:].strip('\n')
            
-            if( currentID != webConfig['id'] ):
+            if( currentID != webConfig['sn'][-5:] ):
                 print("Update Wifi SSID")
-                string_list[idx] = 'ssid=AOC_' + webConfig['id'] + '\n'
+                string_list[idx] = 'ssid=AOC_' + webConfig['sn'][-5:] + '\n'
                 print(string_list[idx])
                 my_file = open("/etc/hostapd/hostapd.conf", "w")
                 new_file_contents = "".join(string_list)
@@ -166,8 +166,8 @@ def getConfig():
     mongoConn = pymongo.MongoClient()
     db_pihos = mongoConn.pihos #test is my database
     db_pihos_configs = db_pihos.configs #Here spam is my collection
-
-    
+    old_configs = list(db_pihos_configs.find())
+   
     #webConfig['mqtt'] =  "159.89.208.90"
 
     newvalues = { "$set": webConfig}
@@ -179,6 +179,8 @@ def getConfig():
     print (configs)
     mongoConn.close()
 
+    if  old_configs[id] != webConfig[id]:
+        os.system('sudo pm2 restart all')
 
 def networkStatus():
     global myconfig
