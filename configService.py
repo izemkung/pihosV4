@@ -179,7 +179,7 @@ def getConfig():
     print (configs)
     mongoConn.close()
 
-    if old_configs['id'] != webConfig['id']:
+    if old_configs[0]['id'] != webConfig['id']:
         os.system('sudo pm2 restart all')
 
 def networkStatus():
