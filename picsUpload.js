@@ -160,6 +160,11 @@ async function main()
     {
         programEnd = Date.now() + 3000;
     }
+
+    for (var iCount =0; iCount < 4 ; iCount++) 
+    {
+        timeStartResetCAM[iCount] = Date.now(); 
+    }
     
     var GetPicError = 0;
     while(Date.now() < programEnd)
@@ -280,7 +285,7 @@ async function main()
                 arrayCamErrorCount[iCount] = 0;
                 console.log('-------------CAM'+ (iCount+1) + ' Reset I/O----------------');
 
-                if((Date.now() - timeStartResetCAM[iCount]) > 60000)
+                if((Date.now() - timeStartResetCAM[iCount]) > 120000)
                 {
                     timeStartResetCAM[iCount] = Date.now(); 
 
