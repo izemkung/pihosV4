@@ -206,22 +206,27 @@ def networkStatus():
     ser.flushInput()
     ser.flushOutput()
 
-    newvalues = {}
-    accessTech = get_Modem_info(ser,'AT+QNWINFO')[0].split(',')
-    newvalues['accessTech'] = accessTech[0][accessTech[0].find('"')+1:-1]  +' ' +accessTech[2].strip('"')
-    modem = get_Modem_info(ser,'ATI')
-    newvalues['modem'] = modem[0] +' '+modem[1]+' '+modem[2][modem[2].find(' '):]
-    sinnal = get_Modem_info(ser,'AT+CSQ')
-    newvalues['sinnalQuality'] = sinnal[0][sinnal[0].find(' '):].strip()
-    newvalues['imei'] = get_Modem_info(ser,'AT+CGSN')[0]
-    newvalues['imsi'] = get_Modem_info(ser,'AT+CIMI')[0]
-    ccid = get_Modem_info(ser,'AT+QCCID')
-    newvalues['iccid'] = ccid[0][ccid[0].find(' '):].strip()
-    operator = get_Modem_info(ser,'AT+QSPN')[0].split(',')
-    newvalues['operator'] = operator[2].strip('"') +' '+ operator[1].strip('"')
-    addresses = [i['addr'] for i in ifaddresses('wwan0').setdefault(AF_INET, [{'addr':'No IP addr'}] )]
-    newvalues['ip'] = addresses[0]
-    
+    try:
+        newvalues = {}
+        accessTech = get_Modem_info(ser,'AT+QNWINFO')[0].split(',')
+        newvalues['accessTech'] = accessTech[0][accessTech[0].find('"')+1:-1]  +' ' +accessTech[2].strip('"')
+        modem = get_Modem_info(ser,'ATI')
+        newvalues['modem'] = modem[0] +' '+modem[1]+' '+modem[2][modem[2].find(' '):]
+        sinnal = get_Modem_info(ser,'AT+CSQ')
+        newvalues['sinnalQuality'] = sinnal[0][sinnal[0].find(' '):].strip()
+        newvalues['imei'] = get_Modem_info(ser,'AT+CGSN')[0]
+        newvalues['imsi'] = get_Modem_info(ser,'AT+CIMI')[0]
+        ccid = get_Modem_info(ser,'AT+QCCID')
+        newvalues['iccid'] = ccid[0][ccid[0].find(' '):].strip()
+        operator = get_Modem_info(ser,'AT+QSPN')[0].split(',')
+        newvalues['operator'] = operator[2].strip('"') +' '+ operator[1].strip('"')
+        addresses = [i['addr'] for i in ifaddresses('wwan0').setdefault(AF_INET, [{'addr':'No IP addr'}] )]
+        newvalues['ip'] = addresses[0]
+    except:
+        newvalues['operator'] = "LAN INT"
+        addresses = [i['addr'] for i in ifaddresses('eth0').setdefault(AF_INET, [{'addr':'No IP addr'}] )]
+        newvalues['ip'] = addresses[0]
+
     ser.close()
 
     #newvalues['apn'] = bearrerinfo['Properties']['apn']
