@@ -206,6 +206,7 @@ def networkStatus():
     ser.flushInput()
     ser.flushOutput()
 
+    #SIM Info
     try:
         newvalues = {}
         accessTech = get_Modem_info(ser,'AT+QNWINFO')[0].split(',')
@@ -223,17 +224,21 @@ def networkStatus():
         addresses = [i['addr'] for i in ifaddresses('wwan0').setdefault(AF_INET, [{'addr':'No IP addr'}] )]
         newvalues['ip'] = addresses[0]
     except:
+        #LAN Info
         newvalues['operator'] = "LAN INT"
         addresses = [i['addr'] for i in ifaddresses('eth0').setdefault(AF_INET, [{'addr':'No IP addr'}] )]
         newvalues['ip'] = addresses[0]
 
     ser.close()
 
+
     #newvalues['apn'] = bearrerinfo['Properties']['apn']
     newvalues['model'] = cpuinfo['Model']
     newvalues['tepm'] = cpuinfo['Tepm']
     newvalues['cpu'] = cpuinfo['CPU']
     newvalues['id'] = myconfig['id']
+    newvalues['installLocation'] = myconfig['installLocation']
+    newvalues['installDate'] = myconfig['installDate']
     newvalues = { "$set": newvalues}
     db_pihos_status.update_one({}, newvalues)
     status = list(db_pihos_status.find())

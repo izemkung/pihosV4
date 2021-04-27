@@ -149,11 +149,11 @@ async function main()
     console.log(arrayCamOnline);
 
 
-    var programEnd = Date.now() + 600000;
+    var programEnd = Date.now() + 600000;//600 Sec
     var programStart = Date.now();
     if(arrayCamOnline.length <= 1)
     {
-        programEnd = Date.now() + 30000;
+        programEnd = Date.now() + 30000;//30 Sec
     }
 
     if(arrayCamOnline.length == 0)
@@ -218,6 +218,8 @@ async function main()
             }
             countCam+=1;
         }
+
+        
         //const result2 = await runServiceCamGetPic('CAM2') 
         //arrayCamPic.push(result2);
         //console.log(result2); 
@@ -254,7 +256,7 @@ async function main()
             
             LED.writeSync(0);
         }
-        //gps.update("$GPGGA,224900.000,4832.3762,N,00903.5393,E,1,04,7.8,498.6,M,48.0,M,,0000*5E");
+
         var programLoopTimeDiff = Date.now() - programLoopTime;
         if(programLoopTimeDiff > timeLoop)
         {
@@ -266,14 +268,19 @@ async function main()
 
         //console.log('loop ' + (Date.now() - programLoopTime) +' ms timeDiff ' + programLoopTimeDiff + ' ms.') 
 
-        if(GetPicError < 20) 
-        {
-            programEnd = Date.now() + 30000;
-        }
-        if(GetPicError > 20) 
+        if(countCam >= numCamera)
         {
             GetPicError = 0;
-            programEnd = Date.now() + 1000;
+        }
+
+        if(GetPicError < 40) 
+        {
+            programEnd = Date.now() + 60000;//60 Sec
+        }
+        else if(GetPicError > 40) 
+        {
+            GetPicError = 0;
+            programEnd = Date.now() - 100;
         }
 
         //Reset Cam
@@ -283,45 +290,45 @@ async function main()
             if(arrayCamErrorCount[iCount] > 10 )
             {
                 arrayCamErrorCount[iCount] = 0;
-                console.log('-------------CAM'+ (iCount+1) + ' Reset I/O----------------');
+                console.log('-------------CAM'+ (iCount+1) + ' Error I/O----------------');
 
-                if((Date.now() - timeStartResetCAM[iCount]) > 120000)
+                if((Date.now() - timeStartResetCAM[iCount]) > 180000)//4 min
                 {
                     timeStartResetCAM[iCount] = Date.now(); 
 
                     if(iCount == 0)
                     {
-                        console.log('CAM'+ (iCount+1) + ' Reset');
+                        console.log('-------------CAM'+ (iCount+1) + ' Reset');
 
                         IO_CAM1.writeSync(0);
-                        await wasteTime(1000);
+                        await wasteTime(2000);
                         IO_CAM1.writeSync(1);           
                     }
 
                     if(iCount == 1)
                     {
-                        console.log('CAM'+ (iCount+1) + ' Reset');
+                        console.log('-------------CAM'+ (iCount+1) + ' Reset');
 
                         IO_CAM2.writeSync(0);
-                        await wasteTime(1000);
+                        await wasteTime(2000);
                         IO_CAM2.writeSync(1);           
                     }
 
                     if(iCount == 2)
                     {
-                        console.log('CAM'+ (iCount+1) + ' Reset');
+                        console.log('-------------CAM'+ (iCount+1) + ' Reset');
 
                         IO_CAM3.writeSync(0);
-                        await wasteTime(1000);
+                        await wasteTime(2000);
                         IO_CAM3.writeSync(1);           
                     }
 
                     if(iCount == 3)
                     {
-                        console.log('CAM'+ (iCount+1) + ' Reset');
+                        console.log('-------------CAM'+ (iCount+1) + ' Reset');
 
                         IO_CAM4.writeSync(0);
-                        await wasteTime(1000);
+                        await wasteTime(2000);
                         IO_CAM4.writeSync(1);           
                     }
                      
