@@ -3,9 +3,8 @@ import time
 import json
 import pymongo
 import threading
-import time
 import subprocess
-import threading
+import socket
 
 # generate client ID with pub prefix randomly
 conn = pymongo.MongoClient()
@@ -58,7 +57,23 @@ print(jsonCmd['CAM2'])
 rtsp = None
 threadingOut = False 
 
+REMOTE_SERVER = "www.google.com"
 #mosquitto_pub -t "CAR99" -m '{"CAM1":"on","CAM2":"on"}' -u "mqtt" -P "original"
+def internet_on():
+    try:
+        # see if we can resolve the host name -- tells us if there is
+        # a DNS listening
+        host = socket.gethostbyname(REMOTE_SERVER)
+        # connect to the host -- tells us if the host is actually
+        # reachable
+        s = socket.create_connection((host, 80), 2)
+        return True
+    except:
+        pass
+    return False
+
+while(internet_on() == False):
+    time.sleep(20)
 
 def connect_mqtt() -> mqtt_client:
     def on_connect(client, userdata, flags, rc):

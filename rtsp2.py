@@ -3,7 +3,6 @@ import time
 import json
 import pymongo
 import threading
-import time
 import subprocess
 import socket
 
@@ -39,7 +38,7 @@ def connect_mqtt() -> mqtt_client:
     client.connect(broker, port)
     print("loop2")
     return client
-    
+
 # generate client ID with pub prefix randomly
 conn = pymongo.MongoClient()
 db = conn.pihos #test is my database
