@@ -123,7 +123,7 @@ try:
           print ('status_code ' , resp.status_code)
           time.sleep(0.3)
           GPIO.output(22,False)
-          GpsStatus('code : ' + resp.status_code)
+          GpsStatus('code : ' + str(resp.status_code))
           timeout = time.time() + 10
         #print 'headers     ' , resp.headers
         #print 'content     ' , resp.content

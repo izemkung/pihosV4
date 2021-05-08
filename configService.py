@@ -13,11 +13,31 @@ import inspect
 import json
 import re
 import pymongo
+from gps import *
+import threading
 from netifaces import interfaces, ifaddresses, AF_INET
 
 
 REMOTE_SERVER = "www.google.com"
 myconfig = ''
+gpsd = None
+threadingOut = False 
+
+class GpsPoller(threading.Thread):
+  def __init__(self):
+    threading.Thread.__init__(self)
+    global gpsd #bring it in scope
+    gpsd = gps(mode=WATCH_ENABLE) #starting the stream of info
+    self.current_value = None
+    self.running = True #setting the thread running to true
+ 
+  def run(self):
+    global gpsd
+    global threadingOut
+    while gpsp.running:
+      gpsd.next() #this will continue to loop and grab EACH set of gpsd info to clear the buffer
+      if(threadingOut):
+        break
 
 def internet_on():
     try:
@@ -267,14 +287,18 @@ def sendStatusPack(msg,time):
     r = requests.post('http://159.89.208.90:5000/status/',data=json.dumps(status[0]), headers=headers)
   
 
-def SendAlartFun(channel):
+def SendCreashFun():
     global myconfig
+    global gpsd
+    #print ('SendCreashFun')
     nti_url = myconfig['server'] + ":3020/api/notification"
     try:
-        resp = requests.get(nti_url+'/?ambulance_id={0}&imei={2}'.format(myconfig[id], myconfig['sn']), timeout=3.001)
-        print ('content     ' + resp.content) 
+        nti_url = nti_url+'?ambulance_id={0}&tracking_latitude={1:.6f}&tracking_longitude={2:.6f}&tracking_speed={3:.2f}&tracking_heading={4}'.format(myconfig['id'],gpsd.fix.latitude,gpsd.fix.longitude,gpsd.fix.speed,gpsd.fix.track)
+        #print(nti_url)
+        resp = requests.get(nti_url,timeout=(2.05, 5))       
+        print ('SendCreashFun     '+ str(resp.status_code)) 
     except:
-        print ('SendAlartFun Connection lost')
+        print ('SendCreashFun Connection lost')
 
 
 while(internet_on() == False):
@@ -286,7 +310,7 @@ GPIO.setmode(GPIO.BCM) ## Use board pin numbering
 GPIO.setup(4, GPIO.IN) # Power
 GPIO.setup(18, GPIO.IN) # Alart
 GPIO.setup(17,GPIO.OUT) # LED Red
-GPIO.add_event_detect(18, GPIO.RISING, callback=SendAlartFun, bouncetime=100)
+GPIO.add_event_detect(18, GPIO.RISING, callback=SendCreashFun, bouncetime=100)
 
 
 lastTimeTask1 = time.time() + 600
@@ -296,6 +320,8 @@ timeStart = time.time()
 
 getConfig()
 sendStatusPack('Power on',0)
+gpsp = GpsPoller()
+gpsp.start()
 
 while(True):         
 
@@ -327,3 +353,8 @@ while(True):
         break
 
     time.sleep(2)
+
+
+threadingOut = True
+gpsp.running = False
+print ("Configs.\nExiting.")
