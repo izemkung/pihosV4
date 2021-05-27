@@ -23,10 +23,16 @@ username = configs[0]['mqttUse']
 password = configs[0]['mqttPass']
 rtspURL = configs[0]['serverRTSP']
 
-ffmpeg1_call = "ffmpeg -rtsp_transport tcp -i rtsp://192.168.100.201/ch0_1.h264 -acodec copy -r 10 -s 426x240 -f flv "+ rtspURL +"/"+ topic +"CAM1"
-ffmpeg2_call = "ffmpeg -rtsp_transport tcp -i rtsp://192.168.100.202/ch0_1.h264 -acodec copy -r 10 -s 426x240 -f flv "+ rtspURL +"/"+ topic +"CAM2"
-ffmpeg3_call = "ffmpeg -rtsp_transport tcp -i rtsp://192.168.100.203/ch0_1.h264 -acodec copy -r 10 -s 426x240 -f flv "+ rtspURL +"/"+ topic +"CAM3"
-ffmpeg4_call = "ffmpeg -rtsp_transport tcp -i rtsp://192.168.100.204/ch0_1.h264 -acodec copy -r 10 -s 426x240 -f flv "+ rtspURL +"/"+ topic +"CAM4"
+#ffmpeg1_call = "ffmpeg -rtsp_transport tcp -i rtsp://192.168.100.201/ch0_1.h264 -acodec copy -r 10 -s 426x240 -f flv "+ rtspURL +"/"+ topic +"CAM1"
+#ffmpeg2_call = "ffmpeg -rtsp_transport tcp -i rtsp://192.168.100.202/ch0_1.h264 -acodec copy -r 10 -s 426x240 -f flv "+ rtspURL +"/"+ topic +"CAM2"
+#ffmpeg3_call = "ffmpeg -rtsp_transport tcp -i rtsp://192.168.100.203/ch0_1.h264 -acodec copy -r 10 -s 426x240 -f flv "+ rtspURL +"/"+ topic +"CAM3"
+#ffmpeg4_call = "ffmpeg -rtsp_transport tcp -i rtsp://192.168.100.204/ch0_1.h264 -acodec copy -r 10 -s 426x240 -f flv "+ rtspURL +"/"+ topic +"CAM4"
+
+ffmpeg1_call = "ffmpeg -rtsp_transport tcp -i rtsp://192.168.100.201/ch0_0.h264 -vcodec copy -acodec copy -f flv "+ rtspURL +"/"+ topic +"CAM1"
+ffmpeg2_call = "ffmpeg -rtsp_transport tcp -i rtsp://192.168.100.202/ch0_0.h264 -vcodec copy -acodec copy -f flv "+ rtspURL +"/"+ topic +"CAM2"
+ffmpeg3_call = "ffmpeg -rtsp_transport tcp -i rtsp://192.168.100.203/ch0_0.h264 -vcodec copy -acodec copy -f flv "+ rtspURL +"/"+ topic +"CAM3"
+ffmpeg4_call = "ffmpeg -rtsp_transport tcp -i rtsp://192.168.100.204/ch0_0.h264 -vcodec copy -acodec copy -f flv "+ rtspURL +"/"+ topic +"CAM4"
+
 currentCAM = {}
 currentCAM['CAM1'] = 'off'
 currentCAM['CAM2'] = 'off'
@@ -276,6 +282,44 @@ class rtspPoller(threading.Thread):
                 currentCAM['CAM2'] = 'off'
                 p2.kill()
                 print("Stop Cam2 time Out")
+
+        if (currentCAM['CAM3'] == 'on'):
+            line3 = p3.stdout.readline().rstrip('\r\n')
+            if line3 == "" and p3.poll() is not None:
+                currentCAM['CAM3'] = 'off'
+                returncode = p3.returncode
+                if returncode == 0:
+                    # ffmpeg has successfully exited
+                    end = time.time()
+                    print('ffmpeg cam3 completed in {}'.format(strftime('%H:%M:%S', time.gmtime(end - start))))
+                else:
+                    print('ffmpeg cam3 has terminated with code '+ str(p3.returncode))     
+            if line3 != oldline3:
+                print('CAM3 > '+ line3)
+
+            if((time.time() - currentCAM['TCAM3'])  > stremTime  ):
+                currentCAM['CAM3'] = 'off'
+                p3.kill()
+                print("Stop Cam3 time Out")
+
+        if (currentCAM['CAM4'] == 'on'):
+            line4 = p4.stdout.readline().rstrip('\r\n')
+            if line4 == "" and p4.poll() is not None:
+                currentCAM['CAM4'] = 'off'
+                returncode = p4.returncode
+                if returncode == 0:
+                    # ffmpeg has successfully exited
+                    end = time.time()
+                    print('ffmpeg cam4 completed in {}'.format(strftime('%H:%M:%S', time.gmtime(end - start))))
+                else:
+                    print('ffmpeg cam4 has terminated with code '+ str(p4.returncode))     
+            if line4 != oldline4:
+                print('CAM4 > '+ line4)
+
+            if((time.time() - currentCAM['TCAM4'])  > stremTime  ):
+                currentCAM['CAM4'] = 'off'
+                p4.kill()
+                print("Stop Cam4 time Out")
 
         if(threadingOut):
             break

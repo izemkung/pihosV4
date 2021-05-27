@@ -9,6 +9,7 @@ const Moment = require("moment");
 var net = require('net');
 var request = require('request');
 const fs = require('fs');
+const fetch = require('node-fetch');
 var Gpio = require('onoff').Gpio; //include onoff to interact with the GPIO
 var LED = new Gpio(17, 'out'); //use GPIO pin 17 PC, and specify that it is output
 var IO_CAM1 = new Gpio(8, 'out');
@@ -30,6 +31,7 @@ var countSend = 0;
 const timeLoop = 3000;
 var arrayCamErrorCount = [0,0,0,0];
 var timeStartResetCAM = [0,0,0,0];
+var sendRotagetionPic = [1,1,1,1];
 var carID = 99;
 var server = "";
 var apiVersion = "";
@@ -212,6 +214,34 @@ async function main()
                     arrayCamError.push(cam.Name +' Ok')
                     arrayCamPic.push(cam);
                     arrayCamErrorCount[countCam] = 0;
+                    
+
+                    if(sendRotagetionPic[0] == 1 && cam.Name == "CAM1" )
+                    {
+                        sendRotagetionPic[0] = 0;
+                        var url = "http://192.168.100.201:8080/cgi-bin/camera_settings.sh?rotate=yes";
+                        const response = await fetch(url, {signal: controller.signal});
+                        console.log('Send Rotation ' + cam.Name + ' Send' );
+                    }else if(sendRotagetionPic[1] == 1 && cam.Name == "CAM2" )
+                    {
+                        sendRotagetionPic[1] = 0;
+                        var url = "http://192.168.100.202:8080/cgi-bin/camera_settings.sh?rotate=yes";
+                        const response = await fetch(url, {signal: controller.signal});
+                    }else if(sendRotagetionPic[2] == 1 && cam.Name == "CAM3" )
+                    {
+                        sendRotagetionPic[2] = 0;
+                        var url = "http://192.168.100.203:8080/cgi-bin/camera_settings.sh?rotate=yes";
+                        const response = await fetch(url, {signal: controller.signal});
+                    }else if(sendRotagetionPic[3] == 1 && cam.Name == "CAM4" )
+                    {
+                        sendRotagetionPic[3] = 0;
+                        var url = "http://192.168.100.204:8080/cgi-bin/camera_settings.sh?rotate=no";
+                        const response = await fetch(url, {signal: controller.signal});
+                    }
+
+
+                    
+
                 }else{
                     //console.log('Size error');
                 }
@@ -287,6 +317,9 @@ async function main()
 
         for (var iCount =0; iCount < 4 ; iCount++) 
         {
+
+            
+
             if(arrayCamErrorCount[iCount] > 10 )
             {
                 arrayCamErrorCount[iCount] = 0;
