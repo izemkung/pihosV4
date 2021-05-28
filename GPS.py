@@ -114,7 +114,7 @@ try:
   while True:
     print ('GPS sending Seccess ' , countSend ,' Error ', countError ) 
   
-    if (str(gpsd.fix.latitude) != 'nan' and str(gpsd.fix.latitude) != '0.0' and str(gpsd.fix.speed) != 'nan' and str(gpsd.fix.track) != 'nan' and str(gpsd.fix.track) != '0.0'):
+    if (str(gpsd.fix.latitude) != 'nan' and str(gpsd.fix.latitude) != '0.0' and str(gpsd.fix.speed) != 'nan' and str(gpsd.fix.track) != 'nan' ):
       GPIO.output(22,True)
       try:
         resp = requests.get(gps_url+'/?ambulance_id={0}&tracking_latitude={1:.6f}&tracking_longitude={2:.6f}&tracking_speed={3:.2f}&tracking_heading={4}'.format(id,gpsd.fix.latitude,gpsd.fix.longitude,gpsd.fix.speed,gpsd.fix.track),timeout=(2.05, 5))
