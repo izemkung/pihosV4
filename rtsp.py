@@ -5,6 +5,8 @@ import pymongo
 import threading
 import subprocess
 import socket
+import platform    # For getting the operating system name
+import subprocess  # For executing a shell command
 
 # generate client ID with pub prefix randomly
 conn = pymongo.MongoClient()
@@ -18,20 +20,22 @@ conn.close()
 topic = 'CAR'+configs[0]['id']
 stremTime = configs[0]['timeRTSP']
 broker = configs[0]['mqtt']
+apiVersion = configs[0]['apiVersion']
 port = 1883
 username = configs[0]['mqttUse']
 password = configs[0]['mqttPass']
 rtspURL = configs[0]['serverRTSP']
+numCAM = configs[0]['camN']
 
-#ffmpeg1_call = "ffmpeg -rtsp_transport tcp -i rtsp://192.168.100.201/ch0_1.h264 -acodec copy -r 10 -s 426x240 -f flv "+ rtspURL +"/"+ topic +"CAM1"
-#ffmpeg2_call = "ffmpeg -rtsp_transport tcp -i rtsp://192.168.100.202/ch0_1.h264 -acodec copy -r 10 -s 426x240 -f flv "+ rtspURL +"/"+ topic +"CAM2"
-#ffmpeg3_call = "ffmpeg -rtsp_transport tcp -i rtsp://192.168.100.203/ch0_1.h264 -acodec copy -r 10 -s 426x240 -f flv "+ rtspURL +"/"+ topic +"CAM3"
-#ffmpeg4_call = "ffmpeg -rtsp_transport tcp -i rtsp://192.168.100.204/ch0_1.h264 -acodec copy -r 10 -s 426x240 -f flv "+ rtspURL +"/"+ topic +"CAM4"
+ffmpeg1_call = "ffmpeg -rtsp_transport tcp -i rtsp://192.168.100.201/ch0_1.h264 -acodec copy -r 10 -s 426x240 -f flv "+ rtspURL +"/"+ topic +"CAM1"
+ffmpeg2_call = "ffmpeg -rtsp_transport tcp -i rtsp://192.168.100.202/ch0_1.h264 -acodec copy -r 10 -s 426x240 -f flv "+ rtspURL +"/"+ topic +"CAM2"
+ffmpeg3_call = "ffmpeg -rtsp_transport tcp -i rtsp://192.168.100.203/ch0_1.h264 -acodec copy -r 10 -s 426x240 -f flv "+ rtspURL +"/"+ topic +"CAM3"
+ffmpeg4_call = "ffmpeg -rtsp_transport tcp -i rtsp://192.168.100.204/ch0_1.h264 -acodec copy -r 10 -s 426x240 -f flv "+ rtspURL +"/"+ topic +"CAM4"
 
-ffmpeg1_call = "ffmpeg -rtsp_transport tcp -i rtsp://192.168.100.201/ch0_0.h264 -vcodec copy -acodec copy -f flv "+ rtspURL +"/"+ topic +"CAM1"
-ffmpeg2_call = "ffmpeg -rtsp_transport tcp -i rtsp://192.168.100.202/ch0_0.h264 -vcodec copy -acodec copy -f flv "+ rtspURL +"/"+ topic +"CAM2"
-ffmpeg3_call = "ffmpeg -rtsp_transport tcp -i rtsp://192.168.100.203/ch0_0.h264 -vcodec copy -acodec copy -f flv "+ rtspURL +"/"+ topic +"CAM3"
-ffmpeg4_call = "ffmpeg -rtsp_transport tcp -i rtsp://192.168.100.204/ch0_0.h264 -vcodec copy -acodec copy -f flv "+ rtspURL +"/"+ topic +"CAM4"
+#ffmpeg1_call = "ffmpeg -rtsp_transport tcp -i rtsp://192.168.100.201/ch0_0.h264 -vcodec copy -acodec copy -r 10 -f flv "+ rtspURL +"/"+ topic +"CAM1"
+#ffmpeg2_call = "ffmpeg -rtsp_transport tcp -i rtsp://192.168.100.202/ch0_0.h264 -vcodec copy -acodec copy -r 10 -f flv "+ rtspURL +"/"+ topic +"CAM2"
+#ffmpeg3_call = "ffmpeg -rtsp_transport tcp -i rtsp://192.168.100.203/ch0_0.h264 -vcodec copy -acodec copy -r 10 -f flv "+ rtspURL +"/"+ topic +"CAM3"
+#ffmpeg4_call = "ffmpeg -rtsp_transport tcp -i rtsp://192.168.100.204/ch0_0.h264 -vcodec copy -acodec copy -r 10 -f flv "+ rtspURL +"/"+ topic +"CAM4"
 
 currentCAM = {}
 currentCAM['CAM1'] = 'off'
@@ -43,22 +47,26 @@ currentCAM['TCAM2'] =  time.time()
 currentCAM['TCAM3'] =  time.time()
 currentCAM['TCAM4'] =  time.time()
 
+hosts = ['192.168.100.201', '192.168.100.202', '192.168.100.203', '192.168.100.204']
+CamOnline = [False,False,False,False]
+
 p1 = 0
 p2 = 0    
 p3 = 0
 p4 = 0
 
+print( 'Strem Clien Ver > ' , apiVersion)
 print( 'Subscribe topic > ' , topic)
-
 client_id = 'python-mqtt-'+ configs[0]['sn']
+print( 'Mqtt Client_id  > ' , client_id)
+print( 'Camera num      > ' , numCAM)
+
 
 person_string = '{"CAM1" : "off" ,"CAM2" : "off" ,"CAM3" : "off"  ,"CAM4" : "off"}'
 person_dict = json.loads(person_string)
 print(json.dumps(person_dict, indent = 4, sort_keys=True))
 jsonCmd = person_dict
 print(jsonCmd)
-print(jsonCmd['CAM1'])
-print(jsonCmd['CAM2'])
 
 rtsp = None
 threadingOut = False 
@@ -78,9 +86,6 @@ def internet_on():
         pass
     return False
 
-while(internet_on() == False):
-    time.sleep(20)
-
 def connect_mqtt() -> mqtt_client:
     def on_connect(client, userdata, flags, rc):
         if rc == 0:
@@ -92,8 +97,22 @@ def connect_mqtt() -> mqtt_client:
     client.username_pw_set(username, password)
     client.on_connect = on_connect
     client.connect(broker, port)
-    print("loop2")
     return client
+
+
+def ping(host):
+    """
+    Returns True if host (str) responds to a ping request.
+    Remember that a host may not respond to a ping (ICMP) request even if the host name is valid.
+    """
+
+    # Option for the number of packets as a function of
+    param = '-n' if platform.system().lower()=='windows' else '-c'
+
+    # Building the command. Ex: "ping -c 1 google.com"
+    command = ['ping', param, '1', host]
+
+    return subprocess.call(command) == 0
 
 
 def subscribe(client: mqtt_client):
@@ -189,7 +208,7 @@ class rtspPoller(threading.Thread):
     while rtsp.running:
         time.sleep(0.1)
         if((person_dict['CAM1'] == 'on') and (currentCAM['CAM1'] == 'off')):
-            person_dict['CAM1'] = 'none'
+            
             currentCAM['CAM1'] = 'on'
             currentCAM['TCAM1'] = time.time()
             cmd= ffmpeg1_call.split(' ')
@@ -197,13 +216,13 @@ class rtspPoller(threading.Thread):
             print("Start Cam1")
             
         elif ((person_dict['CAM1'] == 'off') and (currentCAM['CAM1'] == 'on')):
-            person_dict['CAM1'] = 'none'
+           
             currentCAM['CAM1'] = 'off'
             p1.kill()
             print("Stop Cam1")
 
         if((person_dict['CAM2'] == 'on' ) and (currentCAM['CAM2'] == 'off')):
-            person_dict['CAM2'] = 'none'
+            
             currentCAM['CAM2'] = 'on'
             currentCAM['TCAM2'] = time.time()
             cmd= ffmpeg2_call.split(' ')
@@ -211,13 +230,13 @@ class rtspPoller(threading.Thread):
             print("Start Cam2")
             
         elif ((person_dict['CAM2'] == 'off' )and( currentCAM['CAM2'] == 'on')):
-            person_dict['CAM2'] = 'none'
+           
             currentCAM['CAM2'] = 'off'
             p2.kill()
             print("Stop Cam2")
 
         if((person_dict['CAM3'] == 'on' ) and (currentCAM['CAM3'] == 'off')):
-            person_dict['CAM3'] = 'none'
+            
             currentCAM['CAM3'] = 'on'
             currentCAM['TCAM3'] = time.time()
             cmd= ffmpeg3_call.split(' ')
@@ -225,13 +244,13 @@ class rtspPoller(threading.Thread):
             print("Start Cam3")
             
         elif ((person_dict['CAM3'] == 'off' )and( currentCAM['CAM3'] == 'on')):
-            person_dict['CAM3'] = 'none'
+           
             currentCAM['CAM3'] = 'off'
             p3.kill()
             print("Stop Cam3")
         
         if((person_dict['CAM4'] == 'on' ) and (currentCAM['CAM4'] == 'off')):
-            person_dict['CAM4'] = 'none'
+            
             currentCAM['CAM4'] = 'on'
             currentCAM['TCAM4'] = time.time()
             cmd= ffmpeg4_call.split(' ')
@@ -239,7 +258,7 @@ class rtspPoller(threading.Thread):
             print("Start Cam4")
             
         elif ((person_dict['CAM4'] == 'off' )and( currentCAM['CAM4'] == 'on')):
-            person_dict['CAM4'] = 'none'
+            
             currentCAM['CAM4'] = 'off'
             p4.kill()
             print("Stop Cam4")
@@ -250,19 +269,20 @@ class rtspPoller(threading.Thread):
             if line1 == "" and p1.poll() is not None:
                 currentCAM['CAM1'] = 'off'
                 returncode = p1.returncode
+                
                 if returncode == 0:
                     # ffmpeg has successfully exited
                     end = time.time()
-                    print('ffmpeg cam1 completed in {}'.format(strftime('%H:%M:%S', time.gmtime(end - start))))
+                    print('CAM1 > ffmpeg cam1 completed in {}'.format(strftime('%H:%M:%S', time.gmtime(end - start))))
                 else:
-                    print('ffmpeg cam1 has terminated with code '+ str(p1.returncode))     
+                    print('CAM1 > ffmpeg cam1 has terminated with code '+ str(p1.returncode))     
             if line1 != oldline1:
                 print('CAM1 > '+ line1)
 
             if((time.time() - currentCAM['TCAM1'])  > stremTime  ):
                 currentCAM['CAM1'] = 'off'
                 p1.kill()
-                print("Stop Cam1 time Out")
+                print("CAM1 > Stop Cam1 time Out")
 
         if (currentCAM['CAM2'] == 'on'):
             line2 = p2.stdout.readline().rstrip('\r\n')
@@ -272,16 +292,16 @@ class rtspPoller(threading.Thread):
                 if returncode == 0:
                     # ffmpeg has successfully exited
                     end = time.time()
-                    print('ffmpeg cam2 completed in {}'.format(strftime('%H:%M:%S', time.gmtime(end - start))))
+                    print('CAM2 > ffmpeg cam2 completed in {}'.format(strftime('%H:%M:%S', time.gmtime(end - start))))
                 else:
-                    print('ffmpeg cam2 has terminated with code '+ str(p2.returncode))     
+                    print('CAM2 > ffmpeg cam2 has terminated with code '+ str(p2.returncode))     
             if line2 != oldline2:
                 print('CAM2 > '+ line1)
 
             if((time.time() - currentCAM['TCAM2'])  > stremTime  ):
                 currentCAM['CAM2'] = 'off'
                 p2.kill()
-                print("Stop Cam2 time Out")
+                print("CAM2 > Stop Cam2 time Out")
 
         if (currentCAM['CAM3'] == 'on'):
             line3 = p3.stdout.readline().rstrip('\r\n')
@@ -291,16 +311,16 @@ class rtspPoller(threading.Thread):
                 if returncode == 0:
                     # ffmpeg has successfully exited
                     end = time.time()
-                    print('ffmpeg cam3 completed in {}'.format(strftime('%H:%M:%S', time.gmtime(end - start))))
+                    print('CAM3 > ffmpeg cam3 completed in {}'.format(strftime('%H:%M:%S', time.gmtime(end - start))))
                 else:
-                    print('ffmpeg cam3 has terminated with code '+ str(p3.returncode))     
+                    print('CAM3 > ffmpeg cam3 has terminated with code '+ str(p3.returncode))     
             if line3 != oldline3:
                 print('CAM3 > '+ line3)
 
             if((time.time() - currentCAM['TCAM3'])  > stremTime  ):
                 currentCAM['CAM3'] = 'off'
                 p3.kill()
-                print("Stop Cam3 time Out")
+                print("CAM3 > Stop Cam3 time Out")
 
         if (currentCAM['CAM4'] == 'on'):
             line4 = p4.stdout.readline().rstrip('\r\n')
@@ -310,16 +330,16 @@ class rtspPoller(threading.Thread):
                 if returncode == 0:
                     # ffmpeg has successfully exited
                     end = time.time()
-                    print('ffmpeg cam4 completed in {}'.format(strftime('%H:%M:%S', time.gmtime(end - start))))
+                    print('CAM4 > ffmpeg cam4 completed in {}'.format(strftime('%H:%M:%S', time.gmtime(end - start))))
                 else:
-                    print('ffmpeg cam4 has terminated with code '+ str(p4.returncode))     
+                    print('CAM4 > ffmpeg cam4 has terminated with code '+ str(p4.returncode))     
             if line4 != oldline4:
                 print('CAM4 > '+ line4)
 
             if((time.time() - currentCAM['TCAM4'])  > stremTime  ):
                 currentCAM['CAM4'] = 'off'
                 p4.kill()
-                print("Stop Cam4 time Out")
+                print("CAM4 > Stop Cam4 time Out")
 
         if(threadingOut):
             break
@@ -329,15 +349,52 @@ class rtspPoller(threading.Thread):
 
 
 #p1 = sp.Popen(ffmpeg1_call, stdout=sp.PIPE, stderr=sp.STDOUT, universal_newlines=True)
+while(internet_on() == False):
+    time.sleep(20)
+
 
 rtsp = rtspPoller()
 rtsp.start()
 
-client = connect_mqtt()
-subscribe(client)
 
 
-client.loop_forever()
+if(apiVersion == 1):
+    client = connect_mqtt()
+    subscribe(client)
+    client.loop_forever()
+
+
+countCamOnline = 0
+startCheckTime = time.time()
+if(apiVersion == 2):
+    while(True):
+        time.sleep(20)
+        countCamOnline = 0
+
+        for x in range(numCAM):
+            print('Ping CAM',x+1)
+            if (ping(hosts[x]) == True):
+                print('Find CAM',x+1)
+                countCamOnline += 1
+                CamOnline[x] = True
+            else :
+                CamOnline[x] = False
+
+        if((time.time() - startCheckTime ) > 300):
+            print("Time Out CAM N " , numCAM )
+            break
+        
+        time.sleep(20)
+
+        person_dict['CAM1'] = ('on' if CamOnline[0] == True else 'off')
+        person_dict['CAM2'] = ('on' if CamOnline[1] == True else 'off')
+        person_dict['CAM3'] = ('on' if CamOnline[2] == True else 'off')
+        person_dict['CAM4'] = ('on' if CamOnline[3] == True else 'off')
+
+        
+        print(person_dict)
+    
+
 threadingOut = True
 rtsp.running = False
 print("End Loop rtsp")
