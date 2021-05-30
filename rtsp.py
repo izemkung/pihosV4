@@ -358,7 +358,7 @@ rtsp.start()
 
 
 
-if(apiVersion == 1):
+if(apiVersion == 2):
     client = connect_mqtt()
     subscribe(client)
     client.loop_forever()
@@ -366,7 +366,7 @@ if(apiVersion == 1):
 
 countCamOnline = 0
 startCheckTime = time.time()
-if(apiVersion == 2):
+if(apiVersion == 3):
     while(True):
         time.sleep(20)
         countCamOnline = 0
