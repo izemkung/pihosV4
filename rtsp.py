@@ -342,6 +342,14 @@ class rtspPoller(threading.Thread):
                 print("CAM4 > Stop Cam4 time Out")
 
         if(threadingOut):
+            if p1.poll() is not None: 
+                p1.kill()
+            if p2.poll() is not None: 
+                p2.kill()
+            if p3.poll() is not None: 
+                p3.kill()
+            if p4.poll() is not None: 
+                p4.kill()
             break
 
     print("End thread")
@@ -380,8 +388,9 @@ if(apiVersion == 3):
             else :
                 CamOnline[x] = False
 
-        if((time.time() - startCheckTime ) > 300):
+        if((time.time() - startCheckTime ) > stremTime-5):
             print("Time Out CAM N " , numCAM )
+            threadingOut = True
             break
         
         time.sleep(20)
