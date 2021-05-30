@@ -143,16 +143,16 @@ def subscribe(client: mqtt_client):
         print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
         jsonIN = json.loads(msg.payload.decode())
 
-        if jsonIN.get('CAM1') == None:
-            jsonIN['CAM1'] = 'off'
-        if jsonIN.get('CAM2') == None:
-            jsonIN['CAM2'] = 'off'
-        if jsonIN.get('CAM3') == None:
-            jsonIN['CAM3'] = 'off'
-        if jsonIN.get('CAM4') == None:
-            jsonIN['CAM4'] = 'off'
+        if jsonIN.get('CAM1') != None:
+            person_dict['CAM1'] = jsonIN['CAM1']
+        if jsonIN.get('CAM2') != None:
+            person_dict['CAM2'] = jsonIN['CAM2']
+        if jsonIN.get('CAM3') != None:
+            person_dict['CAM3'] = jsonIN['CAM3']
+        if jsonIN.get('CAM4') != None:
+            person_dict['CAM4'] = jsonIN['CAM4']
 
-        person_dict = jsonIN
+        #person_dict = jsonIN
         
 
         print(rtsp.is_alive())
