@@ -30,8 +30,8 @@ var hosts = ['192.168.100.201', '192.168.100.202', '192.168.100.203', '192.168.1
 var arrayCamOnline = [];
 
 var cameras = [
-    {name: "CAM1", rtsp: "rtsp://192.168.100.201/ch0_1.h264" ,liveStarted:false},
-    {name: "CAM2", rtsp: "rtsp://192.168.100.202/ch0_1.h264" ,liveStarted:false}
+    {name: "CAM1", rtsp: "rtsp://192.168.100.201/ch0_0.h264" ,liveStarted:false},
+    {name: "CAM2", rtsp: "rtsp://192.168.100.202/ch0_0.h264" ,liveStarted:false}
 ];
 
 var countSend = 0;
@@ -60,7 +60,7 @@ async function setup()
     if(apiVersion == 4)//stream to up pic
     {
         console.log("Define CV2");
-        cv2 = require('opencv4nodejs');
+        //cv2 = require('opencv4nodejs');
         child_process = require('child_process'); 
     }
     console.log('API Version  : ' + apiVersion);
@@ -558,6 +558,7 @@ function apiV4()
 
         if(size1 > 1000 && size2 > 1000)
         {
+            LED.writeSync(1);
             var url = server +':3000/fileupload'
             const r = request.post(url, function optionalCallback(err, httpResponse, body) {
                 if (err) {
@@ -577,7 +578,11 @@ function apiV4()
                     });
                 }
 
+            arrayCamError.push('Send OK');
             
+            await wasteTime(50);
+            
+            LED.writeSync(0);
         }
 }
 
