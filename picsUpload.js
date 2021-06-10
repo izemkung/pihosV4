@@ -462,7 +462,7 @@ function startCAM1()
 {
     console.log('Start CAM1');
     cameras[0].liveffmpeg = child_process.spawn("ffmpeg", [
-        "-rtsp_transport", "tcp", "-i", cameras[0].rtsp,"-s","960x540", "-vf" , "fps=2","-an","-sn", 
+        "-rtsp_transport", "tcp", "-i", cameras[0].rtsp,"-s","320x180", "-vf" , "fps=2","-an","-sn", 
         "-f", "image2pipe", "-"   // output to stdout
         ]);
     cameras[0].liveStarted = true;
@@ -504,7 +504,7 @@ function startCAM2()
 {
     console.log('Start CAM2');
     cameras[1].liveffmpeg = child_process.spawn("ffmpeg", [
-        "-rtsp_transport", "tcp", "-i", cameras[1].rtsp,"-s","960x540" ,"-vf" , "fps=2","-an","-sn", 
+        "-rtsp_transport", "tcp", "-i", cameras[1].rtsp,"-s","310x180" ,"-vf" , "fps=2","-an","-sn", 
         "-f", "image2pipe", "-"   // output to stdout
         ]);
     cameras[1].liveStarted = true;
