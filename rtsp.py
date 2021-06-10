@@ -366,15 +366,17 @@ rtsp.start()
 
 
 
-if(apiVersion == 2):
+if(apiVersion != 3):
     client = connect_mqtt()
     subscribe(client)
     client.loop_forever()
+    print("RTSP Start by MQTT")
 
 
 countCamOnline = 0
 startCheckTime = time.time()
 if(apiVersion == 3):
+    print("RTSP Start Auto")
     while(True):
         time.sleep(20)
         countCamOnline = 0
