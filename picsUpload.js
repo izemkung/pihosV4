@@ -529,9 +529,11 @@ function startCAM2()
     });
 }
 
-function apiV4() 
+async function apiV4() 
 {
     //console.log('loop');
+    var arrayCamError = [];
+
         if (cameras[0].liveStarted == false)
         {
             if (typeof cameras[0].liveffmpeg !== "undefined") 
@@ -539,7 +541,7 @@ function apiV4()
                 cameras[0].liveffmpeg.kill();
             }
             startCAM1();
-        } 
+        }
 
             
 
@@ -554,7 +556,23 @@ function apiV4()
             
 
         var size1 = sizeof(cameras[0].data);
-        var size2 =  sizeof(cameras[1].data);
+        var size2 = sizeof(cameras[1].data);
+
+        if(size1 > 1000)
+        {
+            arrayCamError.push('CAM1 OK')
+        }else{
+            arrayCamError.push('CAM1 ERROR')
+        }
+
+        if(size2 > 1000)
+        {
+            arrayCamError.push('CAM2 OK')
+        }else{
+            arrayCamError.push('CAM2 ERROR')
+        }
+
+        
 
         if(size1 > 1000 && size2 > 1000)
         {
@@ -563,6 +581,7 @@ function apiV4()
             const r = request.post(url, function optionalCallback(err, httpResponse, body) {
                 if (err) {
                     console.error(err);
+                    arrayCamError.push('Send Error');
                 }
                 console.log('Count:'+countSend + ' Size: '+ ((size1+size2)/1000) +' kb Code:', httpResponse && httpResponse.statusCode);
             })
@@ -572,6 +591,7 @@ function apiV4()
                 form.append('Time', countSend++);
                 for (let pic of cameras)
                 {
+                    
                     form.append(pic.name,  Buffer.from(pic.data), {
                         filename: 'unicycle.jpg',
                         contentType: 'image/jpeg'
@@ -583,6 +603,7 @@ function apiV4()
             await wasteTime(50);
             
             LED.writeSync(0);
+            camStatus(arrayCamError);
         }
 }
 
