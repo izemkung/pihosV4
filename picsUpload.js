@@ -462,19 +462,19 @@ function startCAM1()
 {
     console.log('Start CAM1');
     cameras[0].liveffmpeg = child_process.spawn("ffmpeg", [
-        "-rtsp_transport", "tcp", "-i", cameras[0].rtsp, "-vf" , "fps=3","-an","-sn", 
+        "-rtsp_transport", "tcp", "-i", cameras[0].rtsp, "-vf" , "fps=2","-an","-sn", 
         "-f", "image2pipe", "-"   // output to stdout
         ]);
     cameras[0].liveStarted = true;
 
     cameras[0].liveffmpeg.on('error', function (err) {
-        console.log(err);
+        console.log('CAM1'+err);
     });
 
     cameras[0].liveffmpeg.on('close', function (code) {
         //cameras[0].liveffmpeg.kill();
         cameras[0].liveStarted = false;
-        console.log('ffmpeg exited with code ' + code);
+        console.log('CAM1 ffmpeg exited with code ' + code);
     });
 
     cameras[0].liveffmpeg.stderr.on('data', function (data) {
@@ -504,19 +504,19 @@ function startCAM2()
 {
     console.log('Start CAM2');
     cameras[1].liveffmpeg = child_process.spawn("ffmpeg", [
-        "-rtsp_transport", "tcp", "-i", cameras[1].rtsp, "-vf" , "fps=3","-an","-sn", 
+        "-rtsp_transport", "tcp", "-i", cameras[1].rtsp, "-vf" , "fps=2","-an","-sn", 
         "-f", "image2pipe", "-"   // output to stdout
         ]);
     cameras[1].liveStarted = true;
 
     cameras[1].liveffmpeg.on('error', function (err) {
-        console.log(err);
+        console.log('CAM2'+err);
     });
 
     cameras[1].liveffmpeg.on('close', function (code) {
         //cameras[0].liveffmpeg.kill();
         cameras[1].liveStarted = false;
-        console.log('ffmpeg exited with code ' + code);
+        console.log('CAM2 ffmpeg exited with code ' + code);
     });
 
     cameras[1].liveffmpeg.stderr.on('data', function (data) {
@@ -574,7 +574,7 @@ async function apiV4()
 
         
 
-        if(size1 > 1000 && size2 > 1000)
+        if(size1 > 10000 && size2 > 10000)
         {
             LED.writeSync(1);
             var url = server +':3000/fileupload'
