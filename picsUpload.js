@@ -7,7 +7,7 @@ const GeoJSON = require("geojson");
 const OS = require("os");
 const Moment = require("moment");
 var cv2 = "";
-var child_process = "";
+const child_process = require('child_process'); 
 var net = require('net');
 var request = require('request');
 const fs = require('fs');
@@ -30,8 +30,8 @@ var hosts = ['192.168.100.201', '192.168.100.202', '192.168.100.203', '192.168.1
 var arrayCamOnline = [];
 
 var cameras = [
-    {name: "CAM1", rtsp: "rtsp://192.168.100.201/ch0_0.h264" ,liveStarted:false},
-    {name: "CAM2", rtsp: "rtsp://192.168.100.202/ch0_0.h264" ,liveStarted:false}
+    {name: "CAM1", rtsp: "rtsp://192.168.100.201/ch0_1.h264" ,liveStarted:false},
+    {name: "CAM2", rtsp: "rtsp://192.168.100.202/ch0_1.h264" ,liveStarted:false}
 ];
 
 var countSend = 0;
@@ -59,9 +59,9 @@ async function setup()
     
     if(apiVersion == 4)//stream to up pic
     {
-        console.log("Define CV2");
+        //console.log("Define CV2");
         //cv2 = require('opencv4nodejs');
-        child_process = require('child_process'); 
+        
     }
     console.log('API Version  : ' + apiVersion);
     console.log("Setup End");
@@ -462,7 +462,7 @@ function startCAM1()
 {
     console.log('Start CAM1');
     cameras[0].liveffmpeg = child_process.spawn("ffmpeg", [
-        "-rtsp_transport", "tcp", "-i", cameras[0].rtsp,"-s","320x180", "-vf" , "fps=2","-an","-sn", 
+        "-rtsp_transport", "tcp", "-i", cameras[0].rtsp, "-vf" , "fps=2","-an","-sn", 
         "-f", "image2pipe", "-"   // output to stdout
         ]);
     cameras[0].liveStarted = true;
@@ -504,7 +504,7 @@ function startCAM2()
 {
     console.log('Start CAM2');
     cameras[1].liveffmpeg = child_process.spawn("ffmpeg", [
-        "-rtsp_transport", "tcp", "-i", cameras[1].rtsp,"-s","310x180" ,"-vf" , "fps=2","-an","-sn", 
+        "-rtsp_transport", "tcp", "-i", cameras[1].rtsp,"-vf" , "fps=2","-an","-sn", 
         "-f", "image2pipe", "-"   // output to stdout
         ]);
     cameras[1].liveStarted = true;
@@ -591,7 +591,6 @@ async function apiV4()
                 form.append('Time', countSend++);
                 for (let pic of cameras)
                 {
-                    
                     form.append(pic.name,  Buffer.from(pic.data), {
                         filename: 'unicycle.jpg',
                         contentType: 'image/jpeg'
@@ -604,6 +603,8 @@ async function apiV4()
             
             LED.writeSync(0);
             camStatus(arrayCamError);
+            cameras[0].data = "";
+            cameras[1].data = "";
         }
 }
 
