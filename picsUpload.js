@@ -566,13 +566,15 @@ async function apiV4()
         } 
 
         var currentTime = Date.now();
-        if( (currentTime - cameras[0].updateTime) > 3000)
+
+        if( (currentTime - cameras[0].updateTime) > 5000)
         {
             cameras[0].updateTime = currentTime;
             cameras[0].liveStarted = false;
             console.log('Live 1 TimeOut');
         }
-        if( (currentTime - cameras[1].updateTime) > 3000)
+        
+        if( (currentTime - cameras[1].updateTime) > 5000)
         {
             cameras[1].updateTime = currentTime;
             cameras[1].liveStarted = false;
@@ -685,6 +687,8 @@ async function mainV4()
 
     startCAM1();
     startCAM2();
+    cameras[0].updateTime = Date.now();
+    cameras[1].updateTime = Date.now();
     setInterval(apiV4, 700);
 
 
