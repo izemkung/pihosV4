@@ -138,6 +138,8 @@ function runServiceCamRotage(workerData) {
     }) 
 } 
 
+
+
 Object.size = function(obj) {
     var size = 0,
     key;
@@ -470,7 +472,7 @@ function startCAM1()
 
     cameras[0].liveffmpeg.on('error', function (err) {
         
-        console.log('CAM1'+err);
+        console.log('CAM1 error '+err);
     });
 
     cameras[0].liveffmpeg.on('close', function (code) {
@@ -515,7 +517,7 @@ function startCAM2()
 
     cameras[1].liveffmpeg.on('error', function (err) {
        
-        console.log('CAM2'+err);
+        console.log('CAM2 error'+err);
     });
 
     cameras[1].liveffmpeg.on('close', function (code) {
