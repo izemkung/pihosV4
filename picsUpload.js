@@ -468,6 +468,7 @@ function startCAM1()
     cameras[0].liveStarted = true;
 
     cameras[0].liveffmpeg.on('error', function (err) {
+        cameras[0].liveStarted = false;
         console.log('CAM1'+err);
     });
 
@@ -504,12 +505,13 @@ function startCAM2()
 {
     console.log('Start CAM2');
     cameras[1].liveffmpeg = child_process.spawn("ffmpeg", [
-        "-rtsp_transport", "tcp", "-i", cameras[1].rtsp,"-s", "640x360","-vf" , "fps=2","-an","-sn", 
-        "-f", "image2pipe" ,"-" // output to stdout
+        "-rtsp_transport", "tcp", "-i", cameras[1].rtsp,"-s", "640x360", "-vf" , "fps=2", "-an", "-sn", 
+        "-f", "image2pipe" , "-" // output to stdout
         ]);
     cameras[1].liveStarted = true;
 
     cameras[1].liveffmpeg.on('error', function (err) {
+        cameras[1].liveStarted = false;
         console.log('CAM2'+err);
     });
 
@@ -612,11 +614,11 @@ async function apiV4()
                 form.append('ID', carID);
                 form.append('Time', countSend++);
                 form.append("CAM1",  Buffer.from(picdata1), {
-                    filename: 'unicycle.jpg',
+                    filename: 'cam1.jpg',
                     contentType: 'image/jpeg'
                 });
                 form.append("CAM2",  Buffer.from(picdata2), {
-                    filename: 'unicycle.jpg',
+                    filename: 'cam2.jpg',
                     contentType: 'image/jpeg'
                 });
 
