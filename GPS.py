@@ -145,6 +145,17 @@ try:
         GPIO.output(22,False)
     else:
       countError += 1  
+      errMsg = "Error msg : "
+      if( str(gpsd.fix.latitude) != 'nan'):
+        errMsg += "latitude " + str(gpsd.fix.latitude)
+      if( str(gpsd.fix.latitude) != '0.0'):
+        errMsg += "latitude " + str(gpsd.fix.latitude)
+      if( str(gpsd.fix.speed) != 'nan' ):
+        errMsg += "speed " + str(gpsd.fix.latitude)
+      if( str(gpsd.fix.track) != 'nan' ):
+        errMsg += "track " + str(gpsd.fix.latitude)
+      print (errMsg)
+      print ('ambulance_id={0}&tracking_latitude={1:.6f}&tracking_longitude={2:.6f}&tracking_speed={3:.2f}&tracking_heading={4}'.format(id,gpsd.fix.latitude,gpsd.fix.longitude,gpsd.fix.speed,gpsd.fix.track))
     
     time.sleep(0.3) #set to whatever
     GPIO.output(22,False)

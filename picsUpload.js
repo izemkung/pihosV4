@@ -30,8 +30,8 @@ var hosts = ['192.168.100.201', '192.168.100.202', '192.168.100.203', '192.168.1
 var arrayCamOnline = [];
 
 var cameras = [
-    {name: "CAM1", rtsp: "rtsp://192.168.100.201/ch0_1.h264" ,liveStarted:false},
-    {name: "CAM2", rtsp: "rtsp://192.168.100.202/ch0_1.h264" ,liveStarted:false}
+    {name: "CAM1", rtsp: "rtsp://192.168.100.201/ch0_0.h264" ,liveStarted:false},
+    {name: "CAM2", rtsp: "rtsp://192.168.100.202/ch0_0.h264" ,liveStarted:false}
 ];
 
 var countSend = 0;
@@ -462,8 +462,8 @@ function startCAM1()
 {
     console.log('Start CAM1');
     cameras[0].liveffmpeg = child_process.spawn("ffmpeg", [
-        "-rtsp_transport", "tcp", "-i", cameras[0].rtsp, "-vf" , "fps=2","-an","-sn", 
-        "-f", "image2pipe", "-"   // output to stdout
+        "-rtsp_transport", "tcp", "-i", cameras[0].rtsp,"-s", "640x360", "-vf" , "fps=2","-an","-sn", 
+        "-f", "image2pipe" ,"-"   // output to stdout
         ]);
     cameras[0].liveStarted = true;
 
@@ -479,10 +479,10 @@ function startCAM1()
 
     cameras[0].liveffmpeg.stderr.on('data', function (data) {
         // console.log('stderr: ' + data);
-        //var tData = data.toString('utf8');
+        var tData = data.toString('utf8');
         // var a = tData.split('[\\s\\xA0]+');
-        //var a = tData.split('\n');
-        //console.log(a);
+        var a = tData.split('\n');
+        console.log(a);
     });
 
     cameras[0].liveffmpeg.stdout.on('data', function (data) {
@@ -491,7 +491,7 @@ function startCAM1()
         //var base64Data = frame.replace(/^data:image\/png;base64,/, "");
         // console.log(frame);
         //cv2.imwrite('99.png', frame)
-        //console.log('PIC1');
+        console.log('PIC1');
 
         //require("fs").writeFile("out.png", frame, 'base64', function(err) {
         //    console.log(err);
@@ -504,8 +504,8 @@ function startCAM2()
 {
     console.log('Start CAM2');
     cameras[1].liveffmpeg = child_process.spawn("ffmpeg", [
-        "-rtsp_transport", "tcp", "-i", cameras[1].rtsp,"-vf" , "fps=2","-an","-sn", 
-        "-f", "image2pipe", "-"   // output to stdout
+        "-rtsp_transport", "tcp", "-i", cameras[1].rtsp,"-s", "640x360","-vf" , "fps=2","-an","-sn", 
+        "-f", "image2pipe" ,"-" // output to stdout
         ]);
     cameras[1].liveStarted = true;
 
@@ -520,12 +520,15 @@ function startCAM2()
     });
 
     cameras[1].liveffmpeg.stderr.on('data', function (data) {
-       
+        var tData = data.toString('utf8');
+        // var a = tData.split('[\\s\\xA0]+');
+        var a = tData.split('\n');
+        console.log(a);
     });
 
     cameras[1].liveffmpeg.stdout.on('data', function (data) {
         cameras[1].data = data;
-        //console.log('PIC2');
+        console.log('PIC2');
     });
 }
 
@@ -540,6 +543,7 @@ async function apiV4()
             {
                 cameras[0].liveffmpeg.kill();
             }
+            await wasteTime(2000);
             startCAM1();
         }
 
@@ -551,6 +555,7 @@ async function apiV4()
             {
                 cameras[1].liveffmpeg.kill();
             }
+            await wasteTime(2000);
             startCAM2();
         } 
             
@@ -561,6 +566,14 @@ async function apiV4()
         if(size1 > 1000)
         {
             arrayCamError.push('CAM1 OK')
+
+            if(sendRotagetionPic[0] == 0)
+            {
+                sendRotagetionPic[0] = 1;
+                const result = runServiceCamRotage("CAM1");
+                console.log('Send Rotation CAM1 Send ' + result);
+            }
+
         }else{
             arrayCamError.push('CAM1 ERROR')
         }
@@ -568,13 +581,20 @@ async function apiV4()
         if(size2 > 1000)
         {
             arrayCamError.push('CAM2 OK')
+            if(sendRotagetionPic[1] == 0)
+            {
+                sendRotagetionPic[1] = 1;
+                const result = runServiceCamRotage("CAM2");
+                console.log('Send Rotation CAM2 Send ' + result);
+            }
+
         }else{
             arrayCamError.push('CAM2 ERROR')
         }
 
         
 
-        if(size1 > 1000 && size2 > 1000)
+        if(size1 > 10000 && size2 > 10000)
         {
             LED.writeSync(1);
             var url = server +':3000/fileupload'
@@ -585,17 +605,30 @@ async function apiV4()
                 }
                 console.log('Count:'+countSend + ' Size: '+ ((size1+size2)/1000) +' kb Code:', httpResponse && httpResponse.statusCode);
             })
-            const form = r.form();
-                
+                const form = r.form();
+                const picdata1 = cameras[0].data;
+                const picdata2 = cameras[1].data;
+
                 form.append('ID', carID);
                 form.append('Time', countSend++);
-                for (let pic of cameras)
+                form.append("CAM1",  Buffer.from(picdata1), {
+                    filename: 'unicycle.jpg',
+                    contentType: 'image/jpeg'
+                });
+                form.append("CAM2",  Buffer.from(picdata2), {
+                    filename: 'unicycle.jpg',
+                    contentType: 'image/jpeg'
+                });
+
+
+
+                /*for (let pic of cameras)
                 {
                     form.append(pic.name,  Buffer.from(pic.data), {
                         filename: 'unicycle.jpg',
                         contentType: 'image/jpeg'
                     });
-                }
+                }*/
 
             arrayCamError.push('Send OK');
             
@@ -603,8 +636,8 @@ async function apiV4()
             
             LED.writeSync(0);
             camStatus(arrayCamError);
-            cameras[0].data = "";
-            cameras[1].data = "";
+            //cameras[0].data = "";
+            //cameras[1].data = "";
         }
 }
 
@@ -631,7 +664,7 @@ async function mainV4()
 
     startCAM1();
     startCAM2();
-    setInterval(apiV4, 500);
+    setInterval(apiV4, 700);
 
 
     //var ffmpeg = require('child_process').spawn('/usr/local/Cellar/ffmpeg/3.3.1/bin/ffmpeg', ['-f', 'avfoundation', '-framerate', '30', '-video_size', '640x480', '-pix_fmt', 'uyvy422', '-i', '0:1', '-f', 'mpegts', '-codec:v', 'mpeg1video', '-s', '640x480', '-b:v', '1000k', '-bf', '0', 'http://localhost:8081/test']);
