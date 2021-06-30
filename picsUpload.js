@@ -30,8 +30,8 @@ var hosts = ['192.168.100.201', '192.168.100.202', '192.168.100.203', '192.168.1
 var arrayCamOnline = [];
 
 var cameras = [
-    {name: "CAM1", rtsp: "rtsp://192.168.100.201/ch0_0.h264" ,liveStarted:false},
-    {name: "CAM2", rtsp: "rtsp://192.168.100.202/ch0_0.h264" ,liveStarted:false}
+    {name: "CAM1", rtsp: "rtsp://192.168.100.201/ch0_0.h264" ,liveStarted:false ,updateTime:"0"},
+    {name: "CAM2", rtsp: "rtsp://192.168.100.202/ch0_0.h264" ,liveStarted:false ,updateTime:"0"}
 ];
 
 var countSend = 0;
@@ -466,6 +466,7 @@ function startCAM1()
         "-f", "image2pipe" ,"-"   // output to stdout
         ]);
     cameras[0].liveStarted = true;
+    cameras[0].updateTime = Date.now();
 
     cameras[0].liveffmpeg.on('error', function (err) {
         cameras[0].liveStarted = false;
@@ -484,6 +485,7 @@ function startCAM1()
         // var a = tData.split('[\\s\\xA0]+');
         //var a = tData.split('\n');
         //console.log(a);
+        cameras[0].updateTime = Date.now();
     });
 
     cameras[0].liveffmpeg.stdout.on('data', function (data) {
@@ -509,6 +511,7 @@ function startCAM2()
         "-f", "image2pipe" , "-" // output to stdout
         ]);
     cameras[1].liveStarted = true;
+    cameras[1].updateTime = Date.now();
 
     cameras[1].liveffmpeg.on('error', function (err) {
         cameras[1].liveStarted = false;
@@ -526,6 +529,7 @@ function startCAM2()
         // var a = tData.split('[\\s\\xA0]+');
         //var a = tData.split('\n');
         //console.log(a);
+        cameras[1].updateTime = Date.now();
     });
 
     cameras[1].liveffmpeg.stdout.on('data', function (data) {
@@ -560,6 +564,19 @@ async function apiV4()
             await wasteTime(2000);
             startCAM2();
         } 
+        
+        var currentTime = Date.now();
+        if( (currentTime - cameras[0].updateTime) > 3000)
+        {
+            cameras[0].liveStarted = false;
+            console.log('Live 1 TimeOut');
+        }
+        if( (currentTime - cameras[1].updateTime) > 3000)
+        {
+            cameras[1].liveStarted = false;
+            console.log('Live 2 TimeOut');
+        }
+
             
 
         var size1 = sizeof(cameras[0].data);
