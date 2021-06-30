@@ -469,7 +469,7 @@ function startCAM1()
     cameras[0].updateTime = Date.now();
 
     cameras[0].liveffmpeg.on('error', function (err) {
-        cameras[0].liveStarted = false;
+        
         console.log('CAM1'+err);
     });
 
@@ -514,7 +514,7 @@ function startCAM2()
     cameras[1].updateTime = Date.now();
 
     cameras[1].liveffmpeg.on('error', function (err) {
-        cameras[1].liveStarted = false;
+       
         console.log('CAM2'+err);
     });
 
@@ -564,15 +564,17 @@ async function apiV4()
             await wasteTime(2000);
             startCAM2();
         } 
-        
+
         var currentTime = Date.now();
         if( (currentTime - cameras[0].updateTime) > 3000)
         {
+            cameras[0].updateTime = currentTime;
             cameras[0].liveStarted = false;
             console.log('Live 1 TimeOut');
         }
         if( (currentTime - cameras[1].updateTime) > 3000)
         {
+            cameras[1].updateTime = currentTime;
             cameras[1].liveStarted = false;
             console.log('Live 2 TimeOut');
         }
