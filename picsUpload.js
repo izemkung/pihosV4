@@ -565,16 +565,16 @@ async function apiV4()
             startCAM2();
         } 
 
-        var currentTime = Date.now();
+        var currentTime = await Date.now();
 
-        if( (currentTime - cameras[0].updateTime) > 5000)
+        if( (currentTime - cameras[0].updateTime) > 10000)
         {
             cameras[0].updateTime = currentTime;
             cameras[0].liveStarted = false;
             console.log('Live 1 TimeOut');
         }
-        
-        if( (currentTime - cameras[1].updateTime) > 5000)
+
+        if( (currentTime - cameras[1].updateTime) > 10000)
         {
             cameras[1].updateTime = currentTime;
             cameras[1].liveStarted = false;
@@ -617,7 +617,7 @@ async function apiV4()
 
         
 
-        if(size1 > 10000 && size2 > 10000)
+        if(size1 > 10000 || size2 > 10000)
         {
             LED.writeSync(1);
             var url = server +':3000/fileupload'
