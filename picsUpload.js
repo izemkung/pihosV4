@@ -576,6 +576,7 @@ async function apiV4()
             cameras[0].updateTime = currentTime;
             cameras[0].liveStarted = false;
             console.log('Live 1 TimeOut');
+            startCAM1();
         }
 
         if( (currentTime - cameras[1].updateTime) > 10000)
@@ -583,6 +584,7 @@ async function apiV4()
             cameras[1].updateTime = currentTime;
             cameras[1].liveStarted = false;
             console.log('Live 2 TimeOut');
+            startCAM2();
         }
 
             
