@@ -20,6 +20,11 @@ GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(27, GPIO.IN)#3G
 
+GPIO.setup(8, GPIO.OUT)
+GPIO.setup(9, GPIO.OUT)
+GPIO.setup(10, GPIO.OUT)
+GPIO.setup(11, GPIO.OUT)
+
 countInternet = 0
 foundModem = 0
 def internet_on():
@@ -34,6 +39,7 @@ def internet_on():
     except:
         pass
     return False
+
 def ResetModem():
     print("ps internet: Send reset device ttyUSB2")
     try:
@@ -68,5 +74,12 @@ while(True):
         countInternet = 0
         #ResetModem()
 
+    if(countInternet == 0):
+        GPIO.output(8,True)
+        GPIO.output(9,True)
+        GPIO.output(10,True)
+        GPIO.output(11,True)
+
+        
     #print("ps internet: sleep")
     time.sleep(30)

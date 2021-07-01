@@ -14,10 +14,10 @@ const fs = require('fs');
 const fetch = require('node-fetch');
 var Gpio = require('onoff').Gpio; //include onoff to interact with the GPIO
 var LED = new Gpio(17, 'out'); //use GPIO pin 17 PC, and specify that it is output
-var IO_CAM1 = new Gpio(8, 'out');
-var IO_CAM2 = new Gpio(9, 'out');
-var IO_CAM3 = new Gpio(10, 'out');
-var IO_CAM4 = new Gpio(11, 'out');
+//var IO_CAM1 = new Gpio(8, 'out');
+//var IO_CAM2 = new Gpio(9, 'out');
+//var IO_CAM3 = new Gpio(10, 'out');
+//var IO_CAM4 = new Gpio(11, 'out');
 var mongo = require('mongodb');
 var mongoClient = require('mongodb').MongoClient;
 var urlMongo = "mongodb://127.0.0.1:27017/";//currentPicURL
@@ -45,10 +45,10 @@ var apiVersion = "";
 var numCamera = "";
 var GetPicError = 0;
 
-IO_CAM1.writeSync(1);
-IO_CAM2.writeSync(1);
-IO_CAM3.writeSync(1);
-IO_CAM4.writeSync(1);
+//IO_CAM1.writeSync(1);
+//IO_CAM2.writeSync(1);
+//IO_CAM3.writeSync(1);
+//IO_CAM4.writeSync(1);
 
 
 
@@ -393,36 +393,36 @@ async function mainV3()
                         {
                             console.log('-------------CAM'+ (iCount+1) + ' Reset');
 
-                            IO_CAM1.writeSync(0);
-                            await wasteTime(2000);
-                            IO_CAM1.writeSync(1);           
+                            //IO_CAM1.writeSync(0);
+                            //await wasteTime(2000);
+                            //IO_CAM1.writeSync(1);           
                         }
 
                         if(iCount == 1)
                         {
                             console.log('-------------CAM'+ (iCount+1) + ' Reset');
 
-                            IO_CAM2.writeSync(0);
-                            await wasteTime(2000);
-                            IO_CAM2.writeSync(1);           
+                            //IO_CAM2.writeSync(0);
+                            //await wasteTime(2000);
+                            //IO_CAM2.writeSync(1);           
                         }
 
                         if(iCount == 2)
                         {
                             console.log('-------------CAM'+ (iCount+1) + ' Reset');
 
-                            IO_CAM3.writeSync(0);
-                            await wasteTime(2000);
-                            IO_CAM3.writeSync(1);           
+                            //IO_CAM3.writeSync(0);
+                            //await wasteTime(2000);
+                            //IO_CAM3.writeSync(1);           
                         }
 
                         if(iCount == 3)
                         {
                             console.log('-------------CAM'+ (iCount+1) + ' Reset');
 
-                            IO_CAM4.writeSync(0);
-                            await wasteTime(2000);
-                            IO_CAM4.writeSync(1);           
+                            //IO_CAM4.writeSync(0);
+                            //await wasteTime(2000);
+                            //IO_CAM4.writeSync(1);           
                         }
                         
                     }//end if((Date.now() - timeStartResetCAM[iCount]) > 180000)//4 min
@@ -555,8 +555,6 @@ async function apiV4()
             startCAM1();
         }
 
-            
-
         if (cameras[1].liveStarted == false)
         {
             if (typeof cameras[1].liveffmpeg !== "undefined") 
@@ -612,58 +610,63 @@ async function apiV4()
                 const result = runServiceCamRotage("CAM2");
                 console.log('Send Rotation CAM2 Send ' + result);
             }
-
         }else{
             arrayCamError.push('CAM2 ERROR')
         }
 
-        
-
-        if(size1 > 10000 || size2 > 10000)
+        try
         {
-            LED.writeSync(1);
-            var url = server +':3000/fileupload'
-            const r = request.post(url, function optionalCallback(err, httpResponse, body) {
-                if (err) {
-                    console.error(err);
-                    arrayCamError.push('Send Error');
-                }
-                console.log('Count:'+countSend + ' Size: '+ ((size1+size2)/1000) +' kb Code:', httpResponse && httpResponse.statusCode);
-            })
-                const form = r.form();
-                const picdata1 = cameras[0].data;
-                const picdata2 = cameras[1].data;
+            if(size1 > 10000 || size2 > 10000)
+            {
+                LED.writeSync(1);
+                var url = server +':3000/fileupload'
+                const r = request.post(url, function optionalCallback(err, httpResponse, body) {
+                    if (err) {
+                        console.error(err);
+                        arrayCamError.push('Send Error');
+                    }
+                    console.log('Count:'+countSend + ' Size: '+ ((size1+size2)/1000) +' kb Code:', httpResponse && httpResponse.statusCode);
+                })
+                    const form = r.form();
+                    const picdata1 = cameras[0].data;
+                    const picdata2 = cameras[1].data;
 
-                form.append('ID', carID);
-                form.append('Time', countSend++);
-                form.append("CAM1",  Buffer.from(picdata1), {
-                    filename: 'cam1.jpg',
-                    contentType: 'image/jpeg'
-                });
-                form.append("CAM2",  Buffer.from(picdata2), {
-                    filename: 'cam2.jpg',
-                    contentType: 'image/jpeg'
-                });
-
-
-
-                /*for (let pic of cameras)
-                {
-                    form.append(pic.name,  Buffer.from(pic.data), {
-                        filename: 'unicycle.jpg',
+                    form.append('ID', carID);
+                    form.append('Time', countSend++);
+                    form.append("CAM1",  Buffer.from(picdata1), {
+                        filename: 'cam1.jpg',
                         contentType: 'image/jpeg'
                     });
-                }*/
+                    form.append("CAM2",  Buffer.from(picdata2), {
+                        filename: 'cam2.jpg',
+                        contentType: 'image/jpeg'
+                    });
 
-            arrayCamError.push('Send OK');
-            
-            await wasteTime(50);
-            
-            LED.writeSync(0);
-            camStatus(arrayCamError);
-            //cameras[0].data = "";
-            //cameras[1].data = "";
+
+
+                    /*for (let pic of cameras)
+                    {
+                        form.append(pic.name,  Buffer.from(pic.data), {
+                            filename: 'unicycle.jpg',
+                            contentType: 'image/jpeg'
+                        });
+                    }*/
+
+                arrayCamError.push('Send OK');
+                
+                await wasteTime(50);
+                
+                LED.writeSync(0);
+                camStatus(arrayCamError);
+                //cameras[0].data = "";
+                //cameras[1].data = "";
+            }
+
+        }catch(error)
+        {
+            console.log("UP Pic request Error");
         }
+
 }
 
 async function mainV4() 
