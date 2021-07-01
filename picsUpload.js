@@ -545,6 +545,8 @@ async function apiV4()
     //console.log('loop');
     var arrayCamError = [];
 
+        console.log(cameras[0].liveStarted);
+        console.log(cameras[1].liveStarted);
         if (cameras[0].liveStarted === false)
         {
             if (typeof cameras[0].liveffmpeg !== "undefined") 
@@ -553,7 +555,7 @@ async function apiV4()
             }
             await wasteTime(2000);
             console.log('CAM 1 liveStarted');
-            startCAM1();
+            //startCAM1();
         }
 
         if (cameras[1].liveStarted === false)
@@ -564,7 +566,7 @@ async function apiV4()
             }
             await wasteTime(2000);
             console.log('CAM 2 liveStarted');
-            startCAM2();
+            //startCAM2();
         } 
 
         var currentTime = await Date.now();
