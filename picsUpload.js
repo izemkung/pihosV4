@@ -482,7 +482,7 @@ function startCAM1()
     });
 
     cameras[0].liveffmpeg.stderr.on('data', function (data) {
-        console.log('stderr: ' + data);
+        //console.log('stderr: ' + data);
         var tData = data.toString('utf8');
         //var a = tData.split('[\\s\\xA0]+');
         var a = tData.split('\n');
