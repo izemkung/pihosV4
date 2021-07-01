@@ -467,7 +467,8 @@ function startCAM1()
         "-rtsp_transport", "tcp", "-i", cameras[0].rtspHD,"-s", "640x360", "-vf" , "fps=2","-an","-sn", 
         "-f", "image2pipe" ,"-"   // output to stdout
         ]);
-    //cameras[0].liveStarted = true;
+        
+    cameras[0].liveStarted = true;
     cameras[0].updateTime = Date.now();
 
     cameras[0].liveffmpeg.on('error', function (err) {
@@ -624,7 +625,7 @@ async function apiV4()
 
         try
         {
-            if(size1 > 10000 || size2 > 10000)
+            if(size1 > 10000 && size2 > 10000)
             {
                 LED.writeSync(1);
                 var url = server +':3000/fileupload'
