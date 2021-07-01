@@ -30,8 +30,8 @@ var hosts = ['192.168.100.201', '192.168.100.202', '192.168.100.203', '192.168.1
 var arrayCamOnline = [];
 
 var cameras = [
-    {name: "CAM1", rtsp: "rtsp://192.168.100.201/ch0_0.h264" ,liveStarted:false ,updateTime:"0"},
-    {name: "CAM2", rtsp: "rtsp://192.168.100.202/ch0_0.h264" ,liveStarted:false ,updateTime:"0"}
+    {name: "CAM1", rtsp: "rtsp://192.168.100.201/ch0_0.h264" , rtspHD: "rtsp://192.168.100.201/ch0_1.h264" ,liveStarted:false ,updateTime:"0"},
+    {name: "CAM2", rtsp: "rtsp://192.168.100.202/ch0_0.h264" , rtspHD: "rtsp://192.168.100.202/ch0_1.h264" ,liveStarted:false ,updateTime:"0"}
 ];
 
 var countSend = 0;
@@ -464,7 +464,7 @@ function startCAM1()
 {
     console.log('Start CAM1');
     cameras[0].liveffmpeg = child_process.spawn("ffmpeg", [
-        "-rtsp_transport", "tcp", "-i", cameras[0].rtsp,"-s", "640x360", "-vf" , "fps=2","-an","-sn", 
+        "-rtsp_transport", "tcp", "-i", cameras[0].rtspHD,"-s", "640x360", "-vf" , "fps=2","-an","-sn", 
         "-f", "image2pipe" ,"-"   // output to stdout
         ]);
     //cameras[0].liveStarted = true;
@@ -509,7 +509,7 @@ function startCAM2()
 {
     console.log('Start CAM2');
     cameras[1].liveffmpeg = child_process.spawn("ffmpeg", [
-        "-rtsp_transport", "tcp", "-i", cameras[1].rtsp,"-s", "640x360", "-vf" , "fps=2", "-an", "-sn", 
+        "-rtsp_transport", "tcp", "-i", cameras[1].rtspHD,"-s", "640x360", "-vf" , "fps=2", "-an", "-sn", 
         "-f", "image2pipe" , "-" // output to stdout
         ]);
     cameras[1].liveStarted = true;
