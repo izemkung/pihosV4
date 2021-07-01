@@ -551,7 +551,7 @@ async function apiV4()
         {
             if (typeof cameras[0].liveffmpeg !== "undefined") 
             {
-                cameras[0].liveffmpeg.kill();
+                //cameras[0].liveffmpeg.kill();
             }
             await wasteTime(2000);
             console.log('CAM 1 liveStarted');
@@ -562,7 +562,7 @@ async function apiV4()
         {
             if (typeof cameras[1].liveffmpeg !== "undefined") 
             {
-                cameras[1].liveffmpeg.kill();
+                //cameras[1].liveffmpeg.kill();
             }
             await wasteTime(2000);
             console.log('CAM 2 liveStarted');
@@ -576,6 +576,7 @@ async function apiV4()
             cameras[0].updateTime = currentTime;
             cameras[0].liveStarted = false;
             console.log('Live 1 TimeOut');
+            cameras[0].liveffmpeg.kill();
             startCAM1();
         }
 
@@ -584,6 +585,7 @@ async function apiV4()
             cameras[1].updateTime = currentTime;
             cameras[1].liveStarted = false;
             console.log('Live 2 TimeOut');
+            cameras[1].liveffmpeg.kill();
             startCAM2();
         }
 

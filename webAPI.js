@@ -30,7 +30,7 @@ async function sendAPI()
 
     var buffer = 'Error';
     try {
-        const response = await fetch(url5, {signal: controller.signal});
+        const response = await fetch(url9, {signal: controller.signal});
         buffer = await response.json();
         console.log('CAM1');
         console.log(buffer);
@@ -46,7 +46,7 @@ async function sendAPI()
 
     var buffer = 'Error';
     try {
-        const response = await fetch(url6, {signal: controller.signal});
+        const response = await fetch(url10, {signal: controller.signal});
         buffer = await response.json();
         console.log('CAM2');
         console.log(buffer);
