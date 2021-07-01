@@ -467,7 +467,7 @@ function startCAM1()
         "-rtsp_transport", "tcp", "-i", cameras[0].rtsp,"-s", "640x360", "-vf" , "fps=2","-an","-sn", 
         "-f", "image2pipe" ,"-"   // output to stdout
         ]);
-    cameras[0].liveStarted = true;
+    //cameras[0].liveStarted = true;
     cameras[0].updateTime = Date.now();
 
     cameras[0].liveffmpeg.on('error', function (err) {
@@ -477,7 +477,7 @@ function startCAM1()
 
     cameras[0].liveffmpeg.on('close', function (code) {
         //cameras[0].liveffmpeg.kill();
-        cameras[0].liveStarted = false;
+        //cameras[0].liveStarted = false;
         console.log('CAM1 ffmpeg exited with code ' + code);
     });
 
@@ -522,7 +522,7 @@ function startCAM2()
 
     cameras[1].liveffmpeg.on('close', function (code) {
         //cameras[0].liveffmpeg.kill();
-        cameras[1].liveStarted = false;
+        //cameras[1].liveStarted = false;
         console.log('CAM2 ffmpeg exited with code ' + code);
     });
 
@@ -567,14 +567,14 @@ async function apiV4()
 
         var currentTime = await Date.now();
 
-        if( (currentTime - cameras[0].updateTime) > 20000)
+        if( (currentTime - cameras[0].updateTime) > 10000)
         {
             cameras[0].updateTime = currentTime;
             cameras[0].liveStarted = false;
             console.log('Live 1 TimeOut');
         }
 
-        if( (currentTime - cameras[1].updateTime) > 20000)
+        if( (currentTime - cameras[1].updateTime) > 10000)
         {
             cameras[1].updateTime = currentTime;
             cameras[1].liveStarted = false;
