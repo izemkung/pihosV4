@@ -545,23 +545,25 @@ async function apiV4()
     //console.log('loop');
     var arrayCamError = [];
 
-        if (cameras[0].liveStarted == false)
+        if (cameras[0].liveStarted === false)
         {
             if (typeof cameras[0].liveffmpeg !== "undefined") 
             {
                 cameras[0].liveffmpeg.kill();
             }
             await wasteTime(2000);
+            console.log('CAM 1 liveStarted');
             startCAM1();
         }
 
-        if (cameras[1].liveStarted == false)
+        if (cameras[1].liveStarted === false)
         {
             if (typeof cameras[1].liveffmpeg !== "undefined") 
             {
                 cameras[1].liveffmpeg.kill();
             }
             await wasteTime(2000);
+            console.log('CAM 2 liveStarted');
             startCAM2();
         } 
 
