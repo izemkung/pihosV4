@@ -482,11 +482,11 @@ function startCAM1()
     });
 
     cameras[0].liveffmpeg.stderr.on('data', function (data) {
-        // console.log('stderr: ' + data);
-        //var tData = data.toString('utf8');
-        // var a = tData.split('[\\s\\xA0]+');
-        //var a = tData.split('\n');
-        //console.log(a);
+        console.log('stderr: ' + data);
+        var tData = data.toString('utf8');
+        //var a = tData.split('[\\s\\xA0]+');
+        var a = tData.split('\n');
+        console.log(a);
         cameras[0].updateTime = Date.now();
     });
 
@@ -527,10 +527,10 @@ function startCAM2()
     });
 
     cameras[1].liveffmpeg.stderr.on('data', function (data) {
-        //var tData = data.toString('utf8');
-        // var a = tData.split('[\\s\\xA0]+');
-        //var a = tData.split('\n');
-        //console.log(a);
+        var tData = data.toString('utf8');
+        //var a = tData.split('[\\s\\xA0]+');
+        var a = tData.split('\n');
+        console.log(a);
         cameras[1].updateTime = Date.now();
     });
 
