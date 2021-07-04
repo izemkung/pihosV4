@@ -154,7 +154,7 @@ function camStatus(msg) {
         if (err)
             throw err;
         var dbo = db.db("pihos");
-        var myquery = {$set: {'statusPIC': msg}};
+        var myquery = {$set: {'statusPIC': msg , 'versionSW' : apiVersion}};
         //myquery['CarID'] = car_id ;
         dbo.collection("status").updateOne({},myquery, function(err, _res) {
             if (err)
@@ -485,9 +485,9 @@ function startCAM1()
     cameras[0].liveffmpeg.stderr.on('data', function (data) {
         //console.log('stderr: ' + data);
         var tData = data.toString('utf8');
-        var a = tData.split('[\\s\\xA0]+');
-        a = a.split('\n');
-        a = 'CAM1 : '+ a
+        var a = tData.split('[\\s\\xA0\\n]+');
+        //a = a.split('\n');
+        a = 'CAM1 : '+ a;
         console.log(a);
         cameras[0].updateTime = Date.now();
     }); 
@@ -531,9 +531,9 @@ function startCAM2()
 
     cameras[1].liveffmpeg.stderr.on('data', function (data) {
         var tData = data.toString('utf8');
-        var a = tData.split('[\\s\\xA0]+');
-        a = a.split('\n');
-        a = 'CAM2 : '+ a
+        var a = tData.split('[\\s\\xA0\\n]+');
+        //a = a.split('\n');
+        a = 'CAM1 : '+ a;
         console.log(a);
         cameras[1].updateTime = Date.now();
     });
