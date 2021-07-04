@@ -642,7 +642,7 @@ async function apiV4()
                         console.error(err);
                         arrayCamError.push('Send Error');
                     }
-                    console.log('Count:'+countSend + ' Size: '+ ((size1+size2)/1000) +' kb Code:', httpResponse && httpResponse.statusCode);
+                    console.log('Count: '+countSend + ' Size: '+ ((size1+size2)/1000) +' Kb Code:', httpResponse && httpResponse.statusCode);
                 })
 
                     const form = r.form();
