@@ -540,7 +540,7 @@ function startCAM2()
 
     cameras[1].liveffmpeg.stdout.on('data', function (data) {
         cameras[1].data = data;
-        cameras[2].dataUpdate = true;
+        cameras[1].dataUpdate = true;
         console.log('CAM 2 : get pic');
     });
 }
