@@ -56,8 +56,12 @@ def ResetModem():
     #os.popen("sudo systemctl restart NetworkManager ModemManager")
     time.sleep(60)
 
+GPIO.output(8,False)
+GPIO.output(9,False)
+GPIO.output(10,False)
+GPIO.output(11,False)
 
-time.sleep(30)
+time.sleep(10)
 while(True):
 #==================internet=====================
     if internet_on() :

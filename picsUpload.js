@@ -30,8 +30,8 @@ var hosts = ['192.168.100.201', '192.168.100.202', '192.168.100.203', '192.168.1
 var arrayCamOnline = [];
 
 var cameras = [
-    {name: "CAM1", rtsp: "rtsp://192.168.100.201/ch0_0.h264" , rtspHD: "rtsp://192.168.100.201/ch0_1.h264" ,liveStarted:false ,updateTime:"0"},
-    {name: "CAM2", rtsp: "rtsp://192.168.100.202/ch0_0.h264" , rtspHD: "rtsp://192.168.100.202/ch0_1.h264" ,liveStarted:false ,updateTime:"0"}
+    {name: "CAM1",data:"",dataUpdate:false , rtsp: "rtsp://192.168.100.201/ch0_0.h264" , rtspHD: "rtsp://192.168.100.201/ch0_1.h264" ,liveStarted:false ,updateTime:"0"},
+    {name: "CAM2",data:"",dataUpdate:false , rtsp: "rtsp://192.168.100.202/ch0_0.h264" , rtspHD: "rtsp://192.168.100.202/ch0_1.h264" ,liveStarted:false ,updateTime:"0"}
 ];
 
 var countSend = 0;
@@ -462,42 +462,44 @@ async function getCameraOnline()
 
 function startCAM1()
 {
-    console.log('Start CAM1');
+    console.log('CAM1 : Start');
     cameras[0].liveffmpeg = child_process.spawn("ffmpeg", [
         "-rtsp_transport", "tcp", "-i", cameras[0].rtspHD,"-s", "640x360", "-vf" , "fps=2","-an","-sn", 
         "-f", "image2pipe" ,"-"   // output to stdout
         ]);
-        
+
     cameras[0].liveStarted = true;
     cameras[0].updateTime = Date.now();
 
     cameras[0].liveffmpeg.on('error', function (err) {
         
-        console.log('CAM1 error '+err);
+        console.log('CAM1 : error '+err);
     });
 
     cameras[0].liveffmpeg.on('close', function (code) {
         //cameras[0].liveffmpeg.kill();
-        //cameras[0].liveStarted = false;
-        console.log('CAM1 ffmpeg exited with code ' + code);
+        cameras[0].liveStarted = false;
+        console.log('CAM1 : ffmpeg exited with code ' + code);
     });
 
     cameras[0].liveffmpeg.stderr.on('data', function (data) {
         //console.log('stderr: ' + data);
         var tData = data.toString('utf8');
-        //var a = tData.split('[\\s\\xA0]+');
-        var a = tData.split('\n');
+        var a = tData.split('[\\s\\xA0]+');
+        a = a.split('\n');
+        a = 'CAM1 : '+ a
         console.log(a);
         cameras[0].updateTime = Date.now();
-    });
+    }); 
 
     cameras[0].liveffmpeg.stdout.on('data', function (data) {
         cameras[0].data = data;
+        cameras[0].dataUpdate = true;
         //var frame =  Buffer.from(data).toString('base64');
         //var base64Data = frame.replace(/^data:image\/png;base64,/, "");
         // console.log(frame);
         //cv2.imwrite('99.png', frame)
-        console.log('PIC1');
+        console.log('CAM1 : get pic');
 
         //require("fs").writeFile("out.png", frame, 'base64', function(err) {
         //    console.log(err);
@@ -508,7 +510,7 @@ function startCAM1()
 
 function startCAM2()
 {
-    console.log('Start CAM2');
+    console.log('CAM2 : Start');
     cameras[1].liveffmpeg = child_process.spawn("ffmpeg", [
         "-rtsp_transport", "tcp", "-i", cameras[1].rtspHD,"-s", "640x360", "-vf" , "fps=2", "-an", "-sn", 
         "-f", "image2pipe" , "-" // output to stdout
@@ -518,26 +520,28 @@ function startCAM2()
 
     cameras[1].liveffmpeg.on('error', function (err) {
        
-        console.log('CAM2 error'+err);
+        console.log('CAM2 : error'+err);
     });
 
     cameras[1].liveffmpeg.on('close', function (code) {
         //cameras[0].liveffmpeg.kill();
-        //cameras[1].liveStarted = false;
-        console.log('CAM2 ffmpeg exited with code ' + code);
+        cameras[1].liveStarted = false;
+        console.log('CAM2 : ffmpeg exited with code ' + code);
     });
 
     cameras[1].liveffmpeg.stderr.on('data', function (data) {
         var tData = data.toString('utf8');
-        //var a = tData.split('[\\s\\xA0]+');
-        var a = tData.split('\n');
+        var a = tData.split('[\\s\\xA0]+');
+        a = a.split('\n');
+        a = 'CAM2 : '+ a
         console.log(a);
         cameras[1].updateTime = Date.now();
     });
 
     cameras[1].liveffmpeg.stdout.on('data', function (data) {
         cameras[1].data = data;
-        console.log('PIC2');
+        cameras[2].dataUpdate = true;
+        console.log('CAM 2 : get pic');
     });
 }
 
@@ -545,9 +549,10 @@ async function apiV4()
 {
     //console.log('loop');
     var arrayCamError = [];
-
-        console.log(cameras[0].liveStarted);
-        console.log(cameras[1].liveStarted);
+    arrayCamError.push('APIV4')
+        /*
+        //console.log(cameras[0].liveStarted);
+        //console.log(cameras[1].liveStarted);
         if (cameras[0].liveStarted === false)
         {
             if (typeof cameras[0].liveffmpeg !== "undefined") 
@@ -555,7 +560,7 @@ async function apiV4()
                 //cameras[0].liveffmpeg.kill();
             }
             await wasteTime(2000);
-            console.log('CAM 1 liveStarted');
+            console.log('CAM1 : liveStarted');
             //startCAM1();
         }
 
@@ -566,9 +571,9 @@ async function apiV4()
                 //cameras[1].liveffmpeg.kill();
             }
             await wasteTime(2000);
-            console.log('CAM 2 liveStarted');
+            console.log('CAM2 : liveStarted');
             //startCAM2();
-        } 
+        } */
 
         var currentTime = await Date.now();
 
@@ -576,7 +581,7 @@ async function apiV4()
         {
             cameras[0].updateTime = currentTime;
             cameras[0].liveStarted = false;
-            console.log('Live 1 TimeOut');
+            console.log('CAM1 : Live TimeOut');
             cameras[0].liveffmpeg.kill();
             startCAM1();
         }
@@ -585,7 +590,7 @@ async function apiV4()
         {
             cameras[1].updateTime = currentTime;
             cameras[1].liveStarted = false;
-            console.log('Live 2 TimeOut');
+            console.log('CAM2 : Live TimeOut');
             cameras[1].liveffmpeg.kill();
             startCAM2();
         }
@@ -607,7 +612,7 @@ async function apiV4()
             }
 
         }else{
-            arrayCamError.push('CAM1 ERROR')
+            arrayCamError.push('CAM1 Error')
         }
 
         if(size2 > 1000)
@@ -620,13 +625,16 @@ async function apiV4()
                 console.log('Send Rotation CAM2 Send ' + result);
             }
         }else{
-            arrayCamError.push('CAM2 ERROR')
+            arrayCamError.push('CAM2 Error')
         }
 
         try
         {
-            if(size1 > 10000 && size2 > 10000)
+            //if(size1 > 10000 && size2 > 10000)
+            if(cameras[0].dataUpdate == true || cameras[1].dataUpdate == true)
             {
+                cameras[0].dataUpdate = false;
+                cameras[1].dataUpdate = false;
                 LED.writeSync(1);
                 var url = server +':3000/fileupload'
                 const r = request.post(url, function optionalCallback(err, httpResponse, body) {
@@ -636,6 +644,7 @@ async function apiV4()
                     }
                     console.log('Count:'+countSend + ' Size: '+ ((size1+size2)/1000) +' kb Code:', httpResponse && httpResponse.statusCode);
                 })
+
                     const form = r.form();
                     const picdata1 = cameras[0].data;
                     const picdata2 = cameras[1].data;
@@ -666,7 +675,7 @@ async function apiV4()
                 await wasteTime(50);
                 
                 LED.writeSync(0);
-                camStatus(arrayCamError);
+                
                 //cameras[0].data = "";
                 //cameras[1].data = "";
             }
@@ -674,7 +683,10 @@ async function apiV4()
         }catch(error)
         {
             console.log("UP Pic request Error");
+            arrayCamError.push('Send Error');
         }
+
+        camStatus(arrayCamError);
 
 }
 
