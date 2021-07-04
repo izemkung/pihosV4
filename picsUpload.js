@@ -533,7 +533,7 @@ function startCAM2()
         var tData = data.toString('utf8');
         var a = tData.split('[\\s\\xA0\\n]+');
         //a = a.split('\n');
-        a = 'CAM1 : '+ a;
+        a = 'CAM2 : '+ a;
         console.log(a);
         cameras[1].updateTime = Date.now();
     });
@@ -541,7 +541,7 @@ function startCAM2()
     cameras[1].liveffmpeg.stdout.on('data', function (data) {
         cameras[1].data = data;
         cameras[1].dataUpdate = true;
-        console.log('CAM 2 : get pic');
+        console.log('CAM2 : get pic');
     });
 }
 
@@ -549,7 +549,7 @@ async function apiV4()
 {
     //console.log('loop');
     var arrayCamError = [];
-    arrayCamError.push('APIV4')
+    //arrayCamError.push('APIV4')
         /*
         //console.log(cameras[0].liveStarted);
         //console.log(cameras[1].liveStarted);
@@ -600,7 +600,7 @@ async function apiV4()
         var size1 = sizeof(cameras[0].data);
         var size2 = sizeof(cameras[1].data);
 
-        if(size1 > 1000)
+        if(cameras[0].dataUpdate == true)
         {
             arrayCamError.push('CAM1 OK')
 
@@ -615,7 +615,7 @@ async function apiV4()
             arrayCamError.push('CAM1 Error')
         }
 
-        if(size2 > 1000)
+        if(cameras[1].dataUpdate == true)
         {
             arrayCamError.push('CAM2 OK')
             if(sendRotagetionPic[1] == 0)
