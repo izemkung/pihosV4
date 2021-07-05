@@ -483,21 +483,22 @@ function startCAM1()
         //a = a.split('\n');
         a = 'CAM1 : '+ a;
         //console.log(a);
-        //cameras[0].updateTime = Date.now();
+        cameras[0].updateTime = Date.now();
     }); 
 
-    cameras[0].liveffmpeg.stdout.on('data', function (data) {
-    cameras[0].data = data;
-    cameras[0].dataUpdate = true;
-    //var frame =  Buffer.from(data).toString('base64');
-    //var base64Data = frame.replace(/^data:image\/png;base64,/, "");
-    // console.log(frame);
-    //cv2.imwrite('99.png', frame)
-    //require("fs").writeFile("out.png", frame, 'base64', function(err) {
-    //    console.log(err);
-    //  });
+    cameras[0].liveffmpeg.stdout.on('data', function (data) 
+    {
+        cameras[0].data = data;
+        cameras[0].dataUpdate = true;
+        //var frame =  Buffer.from(data).toString('base64');
+        //var base64Data = frame.replace(/^data:image\/png;base64,/, "");
+        // console.log(frame);
+        //cv2.imwrite('99.png', frame)
+        //require("fs").writeFile("out.png", frame, 'base64', function(err) {
+        //    console.log(err);
+        //  });
 
-    //console.log('CAM1 : get pic');
+        //console.log('CAM1 : get pic');
 
     });
     
