@@ -45,12 +45,6 @@ var apiVersion = "";
 var numCamera = "";
 var GetPicError = 0;
 
-//IO_CAM1.writeSync(1);
-//IO_CAM2.writeSync(1);
-//IO_CAM3.writeSync(1);
-//IO_CAM4.writeSync(1);
-
-
 
 async function setup()
 {
@@ -63,9 +57,7 @@ async function setup()
         //cv2 = require('opencv4nodejs');
         
     }
-    console.log('API Version  : ' + apiVersion);
-    console.log("Setup End");
-
+    
     if(apiVersion != 4)
     {
         mainV3().catch(err => console.error(err)); 
@@ -76,6 +68,8 @@ async function setup()
         mainV4().catch(err => console.error(err)); 
     }
 
+    console.log('API Version  : ' + apiVersion);
+    console.log("Setup End");
 
 }
 
@@ -488,22 +482,23 @@ function startCAM1()
         var a = tData.split('[\\s\\xA0\\n]+');
         //a = a.split('\n');
         a = 'CAM1 : '+ a;
-        console.log(a);
-        cameras[0].updateTime = Date.now();
+        //console.log(a);
+        //cameras[0].updateTime = Date.now();
     }); 
 
     cameras[0].liveffmpeg.stdout.on('data', function (data) {
-        cameras[0].data = data;
-        cameras[0].dataUpdate = true;
-        //var frame =  Buffer.from(data).toString('base64');
-        //var base64Data = frame.replace(/^data:image\/png;base64,/, "");
-        // console.log(frame);
-        //cv2.imwrite('99.png', frame)
-        console.log('CAM1 : get pic');
+    cameras[0].data = data;
+    cameras[0].dataUpdate = true;
+    //var frame =  Buffer.from(data).toString('base64');
+    //var base64Data = frame.replace(/^data:image\/png;base64,/, "");
+    // console.log(frame);
+    //cv2.imwrite('99.png', frame)
+    //require("fs").writeFile("out.png", frame, 'base64', function(err) {
+    //    console.log(err);
+    //  });
 
-        //require("fs").writeFile("out.png", frame, 'base64', function(err) {
-        //    console.log(err);
-        //  });
+    //console.log('CAM1 : get pic');
+
     });
     
 }
@@ -534,14 +529,14 @@ function startCAM2()
         var a = tData.split('[\\s\\xA0\\n]+');
         //a = a.split('\n');
         a = 'CAM2 : '+ a;
-        console.log(a);
+        //console.log(a);
         cameras[1].updateTime = Date.now();
     });
 
     cameras[1].liveffmpeg.stdout.on('data', function (data) {
-        cameras[1].data = data;
-        cameras[1].dataUpdate = true;
-        console.log('CAM2 : get pic');
+    cameras[1].data = data;
+    cameras[1].dataUpdate = true;
+        //console.log('CAM2 : get pic');
     });
 }
 
@@ -549,7 +544,7 @@ async function apiV4()
 {
     //console.log('loop');
     var arrayCamError = [];
-    //arrayCamError.push('APIV4')
+        //arrayCamError.push('APIV4')
         /*
         //console.log(cameras[0].liveStarted);
         //console.log(cameras[1].liveStarted);
@@ -595,15 +590,14 @@ async function apiV4()
             startCAM2();
         }
 
-            
-
         var size1 = sizeof(cameras[0].data);
         var size2 = sizeof(cameras[1].data);
+        var countPic = 0;
 
         if(cameras[0].dataUpdate == true)
         {
             arrayCamError.push('CAM1 OK')
-
+            countPic++;
             if(sendRotagetionPic[0] == 0)
             {
                 sendRotagetionPic[0] = 1;
@@ -617,6 +611,7 @@ async function apiV4()
 
         if(cameras[1].dataUpdate == true)
         {
+            countPic++;
             arrayCamError.push('CAM2 OK')
             if(sendRotagetionPic[1] == 0)
             {
@@ -633,42 +628,35 @@ async function apiV4()
             //if(size1 > 10000 && size2 > 10000)
             if(cameras[0].dataUpdate == true || cameras[1].dataUpdate == true)
             {
+               
                 cameras[0].dataUpdate = false;
                 cameras[1].dataUpdate = false;
                 LED.writeSync(1);
+
                 var url = server +':3000/fileupload'
                 const r = request.post(url, function optionalCallback(err, httpResponse, body) {
                     if (err) {
                         console.error(err);
                         arrayCamError.push('Send Error');
                     }
-                    console.log('Count: '+countSend + ' Size: '+ ((size1+size2)/1000) +' Kb Code:', httpResponse && httpResponse.statusCode);
+                    console.log('SEND : '+countSend + ' Num: '+countPic+' Size: '+ ((size1+size2)/1000) +' Kb Code:', httpResponse && httpResponse.statusCode);
                 })
 
-                    const form = r.form();
-                    const picdata1 = cameras[0].data;
-                    const picdata2 = cameras[1].data;
+                const form = r.form();
+                const picdata1 = cameras[0].data;
+                const picdata2 = cameras[1].data;
 
-                    form.append('ID', carID);
-                    form.append('Time', countSend++);
-                    form.append("CAM1",  Buffer.from(picdata1), {
-                        filename: 'cam1.jpg',
-                        contentType: 'image/jpeg'
-                    });
-                    form.append("CAM2",  Buffer.from(picdata2), {
-                        filename: 'cam2.jpg',
-                        contentType: 'image/jpeg'
-                    });
+                form.append('ID', carID);
+                form.append('Time', countSend++);
+                form.append("CAM1",  Buffer.from(picdata1), {
+                    filename: 'cam1.jpg',
+                    contentType: 'image/jpeg'
+                });
+                form.append("CAM2",  Buffer.from(picdata2), {
+                    filename: 'cam2.jpg',
+                    contentType: 'image/jpeg'
+                });
 
-
-
-                    /*for (let pic of cameras)
-                    {
-                        form.append(pic.name,  Buffer.from(pic.data), {
-                            filename: 'unicycle.jpg',
-                            contentType: 'image/jpeg'
-                        });
-                    }*/
 
                 arrayCamError.push('Send OK');
                 
@@ -727,15 +715,15 @@ async function mainV4()
     //ffmpeg1_call = "ffmpeg -rtsp_transport tcp -i rtsp://192.168.100.201/ch0_1.h264 -acodec copy -r 10 -s 426x240 -f flv "+ rtspURL +"/"+ topic +"CAM1"
     //ffmpeg -i 'rtsp://192.168.4.20/user=admin&password=&channel=1&stream=0.sdp' -f image2 -vframes 1 -pix_fmt yuvj420p /volume1/@appstore/domoticz/var/scripts/plaatje.jpg
     //var ffmpeg = child_process.spawn("ffmpeg", [
-     //       "-rtsp_transport" ,"tcp" ,"-i" , cameras[0].rtsp, "-vcodec", "copy",
+    //       "-rtsp_transport" ,"tcp" ,"-i" , cameras[0].rtsp, "-vcodec", "copy",
     //        //"-r", "10", "-s","426x240",
     //        "pipe:1"   // output to stdout
-     //       ]);
+    //       ]);
 
     //cameras[0].liveffmpeg = child_process.spawn("ffmpeg", [
     //    "-rtsp_transport", "tcp", "-i", cameras[0].rtsp, "-vcodec", "copy", "-f", "mp4", "-movflags", "frag_keyframe+empty_moov", 
     //    "-reset_timestamps", "1", "-vsync", "1","-flags", "global_header", "-bsf:v", "dump_extra", "-y", "-"   // output to stdout
-     //   ],  {detached: false});
+    //   ],  {detached: false});
     console.log('Start loop');
     //while(Date.now() < programLoopTimeDiff+1000 )
     //cameras[0].liveffmpeg.kill();

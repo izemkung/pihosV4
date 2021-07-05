@@ -19,11 +19,8 @@ USBDEVFS_RESET= 21780
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(27, GPIO.IN)#3G
+GPIO.setup(4, GPIO.IN)#Power
 
-GPIO.setup(8, GPIO.OUT)
-GPIO.setup(9, GPIO.OUT)
-GPIO.setup(10, GPIO.OUT)
-GPIO.setup(11, GPIO.OUT)
 
 countInternet = 0
 foundModem = 0
@@ -56,10 +53,7 @@ def ResetModem():
     #os.popen("sudo systemctl restart NetworkManager ModemManager")
     time.sleep(60)
 
-GPIO.output(8,False)
-GPIO.output(9,False)
-GPIO.output(10,False)
-GPIO.output(11,False)
+
 
 time.sleep(10)
 while(True):
@@ -78,11 +72,7 @@ while(True):
         countInternet = 0
         #ResetModem()
 
-    if(countInternet == 0):
-        GPIO.output(8,True)
-        GPIO.output(9,True)
-        GPIO.output(10,True)
-        GPIO.output(11,True)
+    
 
         
     #print("ps internet: sleep")

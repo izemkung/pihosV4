@@ -278,7 +278,7 @@ def sendStatusPack(msg,time):
     #status[0]['upTime'] = time
     byteOutput = subprocess.check_output(['uptime'], timeout=2)
     out = byteOutput.decode('UTF-8').rstrip()
-    status[0]['upTime'] = out[1:out.find(',')]
+    status[0]['upTime'] = out[1:out.find(',')] 
     print (status[0])
 
     mongoConn.close()
