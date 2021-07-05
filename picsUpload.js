@@ -627,7 +627,7 @@ async function apiV4()
         try
         {
             //if(size1 > 10000 && size2 > 10000)
-            if(cameras[0].dataUpdate == true && cameras[1].dataUpdate == true)
+            if(cameras[0].dataUpdate == true || cameras[1].dataUpdate == true)
             {
                
                 LED.writeSync(1);
