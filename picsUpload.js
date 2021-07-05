@@ -626,25 +626,28 @@ async function apiV4()
         try
         {
             //if(size1 > 10000 && size2 > 10000)
-            if(cameras[0].dataUpdate == true || cameras[1].dataUpdate == true)
+            if(cameras[0].dataUpdate == true && cameras[1].dataUpdate == true)
             {
                
-                cameras[0].dataUpdate = false;
-                cameras[1].dataUpdate = false;
                 LED.writeSync(1);
 
                 var url = server +':3000/fileupload'
-                const r = request.post(url, function optionalCallback(err, httpResponse, body) {
-                    if (err) {
+                const r = request.post(url, function optionalCallback(err, httpResponse, body) 
+                {
+                    if (err) 
+                    {
                         console.error(err);
                         arrayCamError.push('Send Error');
                     }
-                    console.log('SEND : '+countSend + ' Num: '+countPic+' Size: '+ ((size1+size2)/1000) +' Kb Code:', httpResponse && httpResponse.statusCode);
+                    console.log('Send : '+countSend + ' Num: '+countPic+' Size: '+ ((size1+size2)/1000) +' Kb Code:', httpResponse && httpResponse.statusCode);
                 })
 
                 const form = r.form();
                 const picdata1 = cameras[0].data;
                 const picdata2 = cameras[1].data;
+
+                cameras[0].dataUpdate = false;
+                cameras[1].dataUpdate = false;
 
                 form.append('ID', carID);
                 form.append('Time', countSend++);
