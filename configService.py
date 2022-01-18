@@ -276,10 +276,10 @@ def sendStatusPack(msg,time):
     status = list(cur)
     status[0]['msg'] = msg
     #status[0]['upTime'] = time
-    byteOutput = subprocess.check_output(['uptime -s'], timeout=2)
+    byteOutput = subprocess.check_output(['uptime','-s'], timeout=2)
     out = byteOutput.decode('UTF-8').rstrip()
 
-    byteOutput = subprocess.check_output(['uptime -p'], timeout=2)
+    byteOutput = subprocess.check_output(['uptime','-p'], timeout=2)
     out1 = byteOutput.decode('UTF-8').rstrip()
 
     status[0]['upTime'] = out +' ' + out1
