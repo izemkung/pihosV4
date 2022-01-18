@@ -295,7 +295,9 @@ def SendCreashFun():
     global myconfig
     global gpsd
     #print ('SendCreashFun')
-    nti_url = myconfig['server'] + ":3020/api/notification"
+    nti_url = "http://159.89.208.90:3020/api/notification"
+
+    #nti_url = myconfig['server'] +"/api/crash/postAmbulanceCrashNotify"
     try:
         nti_url = nti_url+'?ambulance_id={0}&tracking_latitude={1:.6f}&tracking_longitude={2:.6f}&tracking_speed={3:.2f}&tracking_heading={4}'.format(myconfig['id'],gpsd.fix.latitude,gpsd.fix.longitude,gpsd.fix.speed,gpsd.fix.track)
         #print(nti_url)
