@@ -34,9 +34,18 @@ REMOTE_SERVER = "www.google.com"
 print(configs[0]['id'])
 print(configs[0]['server'])
 id =  configs[0]['id']
+apiV = configs[0]['apiVersion']
 
-gps_url = configs[0]['server'] + ":3020/api/gps"
+#gps_url = configs[0]['server'] + ":3020/api/gps"
+gps_url = "http://202.183.192.149:3020/api/gps"
+gps_url2 = configs[0]['server'] + "/api/tracking/postAmbulanceTracking"
 
+payload_url2={'ambulance_id': '99',
+        'ambulance_box_code': '99',
+        'tracking_latitude': '12.234567',
+        'tracking_longitude': '12.234567',
+        'tracking_heading': '99',
+        'tracking_speed': '2'}
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 
@@ -101,7 +110,10 @@ while(internet_on() == False):
   GPIO.output(22,False)
   time.sleep(2)  
 
-print ('URL > ',gps_url,' ID > ',id)
+if(apiV != 5 )
+  print ('URL > ',gps_url,' ID > ',id)
+if(apiV == 5 )
+  print ('URL2 > ',gps_url2,' ID > ',id)
 gpsp = GpsPoller() # create the thread
 
 try:
@@ -124,8 +136,25 @@ try:
         if(str(gpsSpeed) == 'nan'):
           gpsSpeed = 0.0
 
-        resp = requests.get(gps_url+'/?ambulance_id={0}&tracking_latitude={1:.6f}&tracking_longitude={2:.6f}&tracking_speed={3:.2f}&tracking_heading={4}'.format(id,gpsd.fix.latitude,gpsd.fix.longitude,gpsSpeed,gpsTrack),timeout=(2.05, 5))
         
+        payload_url2['ambulance_id'] = id
+        payload_url2['ambulance_box_code'] = id
+        payload_url2['tracking_latitude'] = gpsd.fix.latitude
+        payload_url2['tracking_longitude'] = gpsd.fix.longitude
+        payload_url2['tracking_heading'] = gpsTrack
+        payload_url2['tracking_speed'] = gpsSpeed
+
+        headers = {}
+        files=[]
+
+        if(apiV != 5 )
+          resp = requests.get(gps_url+'/?ambulance_id={0}&tracking_latitude={1:.6f}&tracking_longitude={2:.6f}&tracking_speed={3:.2f}&tracking_heading={4}'.format(id,gpsd.fix.latitude,gpsd.fix.longitude,gpsSpeed,gpsTrack),timeout=(2.05, 5))
+        
+        if(apiV == 5 )
+          resp = requests.request('POST', gps_url2, headers=headers, data=payload_url2,files=files)
+          #print('AOC new server ' ,resp.status_code)
+        
+
         if(resp.status_code != 200 ):
           print ('status_code ' , resp.status_code)
           time.sleep(0.3)

@@ -44,6 +44,48 @@ var server = "";
 var apiVersion = "";
 var numCamera = "";
 var GetPicError = 0;
+var timeRestart = 0;
+
+
+var optionsToNewServer = {
+    'method': 'POST',
+    'url': 'http://27.254.149.188/api/snapshot/postAmbulanceImageUpload',
+    'headers': {
+    },
+    formData: {
+      'ambulance_id': '60587c82163f1cbdfe6f91b8',
+      'ambulance_box_code': '99',
+      'images_count': '2',
+      'images_name_1': {
+        'value': '',
+        'options': {
+          'filename': 'images_name_1.png',
+          'contentType': null
+        }
+      },
+      'images_name_2': {
+        'value': '',
+        'options': {
+          'filename': 'images_name_2.png',
+          'contentType': null
+        }
+      },
+      'images_name_3': {
+        'value': '',
+        'options': {
+          'filename': 'images_name_3.png',
+          'contentType': null
+        }
+      },
+      'images_name_4': {
+        'value': '',
+        'options': {
+          'filename': 'images_name_4.png',
+          'contentType': null
+        }
+      }
+    }
+  };
 
 
 async function setup()
@@ -58,7 +100,7 @@ async function setup()
         
     }
     
-    if(apiVersion != 4)
+    if(apiVersion == 1 || apiVersion == 2 || apiVersion == 3)
     {
         mainV3().catch(err => console.error(err)); 
     }
@@ -68,12 +110,39 @@ async function setup()
         mainV4().catch(err => console.error(err)); 
     }
 
+    if(apiVersion == 5)
+    {
+        mainV4().catch(err => console.error(err)); 
+    }
+
     console.log('API Version  : ' + apiVersion);
+    printAPI_DIS();
+    
+
+
     console.log("Setup End");
 
 }
 
-
+function printAPI_DIS()
+{
+    if(apiVersion == 2)
+    {
+        console.log("Get pic by get url and ticker Streming");
+    }
+    if(apiVersion == 3)
+    {
+        console.log("Get pic by get url and Auto upload Streming");
+    }
+    if(apiVersion == 4)
+    {
+        console.log("Get pic from Streming");
+    }
+    if(apiVersion == 5)
+    {
+        console.log("New Server Get pic from Streming");
+    }
+}
 
 
 function readConfigs() {
@@ -163,21 +232,14 @@ async function mainV3()
 { 
     await getCameraOnline();
     console.log('CAR ID : ' + carID);
-    console.log('Server URL : ' +server);
+    console.log('Server URL : ' + server);
     console.log('Camera Count  : ' + numCamera);
     console.log('API Version  : ' + apiVersion);
-    if(apiVersion == 2)
-    {
-        console.log("Uppic by get url and ticker Streming");
-    }
-    if(apiVersion == 3)
-    {
-        console.log("Uppic by get url and Auto upload Streming");
-    }
-    if(apiVersion == 4)
-    {
-        console.log("Uppic by get from Streming");
-    }
+
+    console.log('Start Main V3');
+   
+
+    
     
     var numCam = arrayCamOnline.length;
     console.log(arrayCamOnline);
@@ -315,6 +377,12 @@ async function mainV3()
                 countSend++;
                 LED.writeSync(1);
                 var url = server + ':3000/fileupload'
+                //var url = server + '/api/snapshot/postAmbulanceImageUpload';
+                //if(countSend%10 == 0)
+                //{
+                //    url = 'http://202.183.192.149:3000/fileupload';
+                //}
+
                 const r = request.post(url, function optionalCallback(err, httpResponse, body) {
                     if (err) {
                         LED.writeSync(0);
@@ -624,6 +692,17 @@ async function apiV4()
             arrayCamError.push('CAM2 Error')
         }
 
+        if(countPic > 0)
+        {
+            timeRestart = currentTime;
+        }
+
+        if((currentTime - timeRestart) > 10000)
+        {
+            process.exit(1);
+        }
+
+
         try
         {
             //if(size1 > 10000 && size2 > 10000)
@@ -632,7 +711,15 @@ async function apiV4()
                
                 LED.writeSync(1);
 
+                
+
                 var url = server +':3000/fileupload'
+                //var url = server + '/api/snapshot/postAmbulanceImageUpload';
+                //if(countSend%10 == 0)
+                //{
+                //    url = 'http://202.183.192.149:3000/fileupload';
+                //}
+
                 const r = request.post(url, function optionalCallback(err, httpResponse, body) 
                 {
                     if (err) 
@@ -647,20 +734,28 @@ async function apiV4()
                 const picdata1 = cameras[0].data;
                 const picdata2 = cameras[1].data;
 
-                cameras[0].dataUpdate = false;
-                cameras[1].dataUpdate = false;
+                
 
                 form.append('ID', carID);
                 form.append('Time', countSend++);
-                form.append("CAM1",  Buffer.from(picdata1), {
-                    filename: 'cam1.jpg',
-                    contentType: 'image/jpeg'
-                });
-                form.append("CAM2",  Buffer.from(picdata2), {
-                    filename: 'cam2.jpg',
-                    contentType: 'image/jpeg'
-                });
+                if(cameras[0].dataUpdate == true )
+                {
+                    form.append("CAM1",  Buffer.from(picdata1), {
+                        filename: 'cam1.jpg',
+                        contentType: 'image/jpeg'
+                    });   
+                }
+              
+                if(cameras[1].dataUpdate == true )
+                {
+                    form.append("CAM2",  Buffer.from(picdata2), {
+                        filename: 'cam2.jpg',
+                        contentType: 'image/jpeg'
+                    });    
+                }
 
+                cameras[0].dataUpdate = false;
+                cameras[1].dataUpdate = false;
 
                 arrayCamError.push('Send OK');
                 
@@ -677,6 +772,184 @@ async function apiV4()
             console.log("UP Pic request Error");
             arrayCamError.push('Send Error');
         }
+
+        camStatus(arrayCamError);
+
+}
+
+async function apiV5() 
+{
+    var arrayCamError = [];
+    var currentTime = await Date.now();
+
+    if( (currentTime - cameras[0].updateTime) > 10000)
+    {
+        cameras[0].updateTime = currentTime;
+        cameras[0].liveStarted = false;
+        console.log('CAM1 : Live TimeOut');
+        cameras[0].liveffmpeg.kill();
+        startCAM1();
+    }
+
+    if( (currentTime - cameras[1].updateTime) > 10000)
+    {
+        cameras[1].updateTime = currentTime;
+        cameras[1].liveStarted = false;
+        console.log('CAM2 : Live TimeOut');
+        cameras[1].liveffmpeg.kill();
+        startCAM2();
+    }
+
+    var size1 = sizeof(cameras[0].data);
+    var size2 = sizeof(cameras[1].data);
+    var countPic = 0;
+
+    if(cameras[0].dataUpdate == true)
+    {
+        arrayCamError.push('CAM1 OK')
+        countPic++;
+        if(sendRotagetionPic[0] == 0)
+        {
+            sendRotagetionPic[0] = 1;
+            const result = runServiceCamRotage("CAM1");
+            console.log('Send Rotation CAM1 Send ' + result);
+        }
+
+    }else{
+        arrayCamError.push('CAM1 Error')
+    }
+
+    if(cameras[1].dataUpdate == true)
+    {
+        countPic++;
+        arrayCamError.push('CAM2 OK')
+        if(sendRotagetionPic[1] == 0)
+        {
+            sendRotagetionPic[1] = 1;
+            const result = runServiceCamRotage("CAM2");
+            console.log('Send Rotation CAM2 Send ' + result);
+        }
+    }else{
+        arrayCamError.push('CAM2 Error')
+    }
+
+    if(countPic > 0)
+    {
+        timeRestart = currentTime;
+    }
+
+    if((currentTime - timeRestart) > 10000)
+    {
+        process.exit(1);
+    }
+
+
+        //try
+        //{
+            //if(size1 > 10000 && size2 > 10000)
+            if(cameras[0].dataUpdate == true || cameras[1].dataUpdate == true)
+            {
+               
+                LED.writeSync(1);
+
+                /*const picdata1 = cameras[0].data;
+                const picdata2 = cameras[1].data;
+
+                cameras[0].dataUpdate = false;
+                cameras[1].dataUpdate = false;
+
+
+                optionsToNewServer.url = server+"/api/snapshot/postAmbulanceImageUpload"
+                console.log(optionsToNewServer.url);
+                optionsToNewServer.formData.ambulance_id = carID;
+                optionsToNewServer.formData.ambulance_box_code = carID;
+                optionsToNewServer.formData.images_count = picNum;
+
+                optionsToNewServer.formData.images_name_1.value = '';
+                optionsToNewServer.formData.images_name_1.options.filename = 'cam1.jpg';
+                optionsToNewServer.formData.images_name_2.value = Buffer.from(picdata1);
+                optionsToNewServer.formData.images_name_2.options.filename = 'cam2.jpg';
+                optionsToNewServer.formData.images_name_3.value = Buffer.from(picdata2);
+                optionsToNewServer.formData.images_name_3.options.filename = 'cam3.jpg';
+                optionsToNewServer.formData.images_name_4.value = '';
+                optionsToNewServer.formData.images_name_4.options.filename = 'cam4.jpg';
+               
+
+
+                request(optionsToNewServer, function (error, response) 
+                  {
+                    try {
+                      console.log('Send : '+countSend + ' Num: '+countPic+' Size: '+ (size2/1000) +':'+  (size2/1000) + 'Kb Code:', response.statusCode);
+                    } catch (error) {
+                      //console.error(error);
+                    } 
+                  })
+               */
+
+                var url = server + '/api/snapshot/postAmbulanceImageUpload';
+                if(countSend%100 == 0)
+                {
+                    url = 'http://202.183.192.149:3000/fileupload';
+                }
+
+                const r = request.post(url, function optionalCallback(err, httpResponse, body) 
+                {
+                    if (err) 
+                    {
+                        console.error(err);
+                        arrayCamError.push('Send Error');
+                    }
+                    console.log('Send : '+countSend + ' Num: '+countPic+'  Size: '+ (size1/1000) +':'+  (size2/1000) +' Kb Code:', httpResponse && httpResponse.statusCode);
+                })
+
+                const form = r.form();
+                const picdata1 = cameras[0].data;
+                const picdata2 = cameras[1].data;
+
+                
+
+                form.append('ID', carID);
+                form.append('ambulance_id', carID);
+                form.append('ambulance_box_code', carID);
+                form.append('images_count', 2);
+                form.append('Time', countSend++);
+
+                if(cameras[0].dataUpdate == true )
+                {
+                    form.append("CAM1",  Buffer.from(picdata1), {
+                        filename: 'cam1.jpg',
+                        contentType: 'image/jpeg'
+                    });   
+                }
+              
+                if(cameras[1].dataUpdate == true )
+                {
+                    form.append("CAM2",  Buffer.from(picdata2), {
+                        filename: 'cam2.jpg',
+                        contentType: 'image/jpeg'
+                    });    
+                }
+
+                cameras[0].dataUpdate = false;
+                cameras[1].dataUpdate = false;
+
+
+
+                arrayCamError.push('Send OK');
+                
+                await wasteTime(50);
+                
+                LED.writeSync(0);
+                
+                //cameras[0].data = "";
+                //cameras[1].data = "";
+            }
+
+        //}catch(error)
+        //{
+        //    console.log("UP Pic request Error");
+        //    arrayCamError.push('Send Error');
+       // }
 
         camStatus(arrayCamError);
 
@@ -703,11 +976,26 @@ async function mainV4()
         console.log("Uppic by get from Streming");
     }
 
+    if(apiVersion == 5)
+    {
+        console.log("New Server");
+    }
+
     startCAM1();
     startCAM2();
+    timeRestart = Date.now();
     cameras[0].updateTime = Date.now();
     cameras[1].updateTime = Date.now();
-    setInterval(apiV4, 700);
+    if(apiVersion == 4)
+    {
+        setInterval(apiV4, 700);
+    }
+
+    if(apiVersion == 5)
+    {
+        setInterval(apiV5, 700);
+    }
+        
 
 
     //var ffmpeg = require('child_process').spawn('/usr/local/Cellar/ffmpeg/3.3.1/bin/ffmpeg', ['-f', 'avfoundation', '-framerate', '30', '-video_size', '640x480', '-pix_fmt', 'uyvy422', '-i', '0:1', '-f', 'mpegts', '-codec:v', 'mpeg1video', '-s', '640x480', '-b:v', '1000k', '-bf', '0', 'http://localhost:8081/test']);
