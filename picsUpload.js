@@ -887,7 +887,7 @@ async function apiV5()
                */
 
                 var url = server + '/api/snapshot/postAmbulanceImageUpload';
-                if(countSend%100 == 0)
+                if(countSend%30 == 0)
                 {
                     url = 'http://202.183.192.149:3000/fileupload';
                 }

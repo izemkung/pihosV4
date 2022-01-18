@@ -147,13 +147,14 @@ try:
         headers = {}
         files=[]
 
-        if(apiV != 5 ):
-          resp = requests.get(gps_url+'/?ambulance_id={0}&tracking_latitude={1:.6f}&tracking_longitude={2:.6f}&tracking_speed={3:.2f}&tracking_heading={4}'.format(id,gpsd.fix.latitude,gpsd.fix.longitude,gpsSpeed,gpsTrack),timeout=(2.05, 5))
         
-        if(apiV == 5 ):
+          
+        
+        if(apiV == 5 and  (countSend%30) != 0 ):
           resp = requests.request('POST', gps_url2, headers=headers, data=payload_url2,files=files)
           #print('AOC new server ' ,resp.status_code)
-        
+        else:
+          resp = requests.get(gps_url+'/?ambulance_id={0}&tracking_latitude={1:.6f}&tracking_longitude={2:.6f}&tracking_speed={3:.2f}&tracking_heading={4}'.format(id,gpsd.fix.latitude,gpsd.fix.longitude,gpsSpeed,gpsTrack),timeout=(2.05, 5))
 
         if(resp.status_code != 200 ):
           print ('status_code ' , resp.status_code)
