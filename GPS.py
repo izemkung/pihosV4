@@ -119,6 +119,7 @@ gpsp = GpsPoller() # create the thread
 try:
   gpsp.start() # start it up
   countSend = 0
+  countLoop = 0
   countError = 0
   timeout = time.time() + 120
 
@@ -150,7 +151,7 @@ try:
         
           
         
-        if(apiV == 5 and  (countSend%30) != 0 ):
+        if(apiV == 5 and  (countLoop%30) != 0 ):
           resp = requests.request('POST', gps_url2, headers=headers, data=payload_url2,files=files)
           #print('AOC new server ' ,resp.status_code)
         else:
@@ -194,6 +195,7 @@ try:
       print (errMsg)
       print ('ambulance_id={0}&tracking_latitude={1:.6f}&tracking_longitude={2:.6f}&tracking_speed={3:.2f}&tracking_heading={4}'.format(id,gpsd.fix.latitude,gpsd.fix.longitude,gpsd.fix.speed,gpsd.fix.track))
     
+    countLoop += 1
     time.sleep(0.3) #set to whatever
     GPIO.output(22,False)
     time.sleep(0.7) #set to whatever
