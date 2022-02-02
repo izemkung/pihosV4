@@ -725,7 +725,8 @@ async function apiV4()
                 }
                     
             }else{
-                sendPicCondition = true;
+                if(countPic > 0)
+                    sendPicCondition = true;
             }
                 
 
