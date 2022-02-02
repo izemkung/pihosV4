@@ -30,12 +30,12 @@ var hosts = ['192.168.100.201', '192.168.100.202', '192.168.100.203', '192.168.1
 var arrayCamOnline = [];
 
 var cameras = [
-    {name: "CAM1",data:"",dataUpdate:false , rtsp: "rtsp://192.168.100.201/ch0_0.h264" , rtspHD: "rtsp://192.168.100.201/ch0_1.h264" ,liveStarted:false ,updateTime:"0"},
-    {name: "CAM2",data:"",dataUpdate:false , rtsp: "rtsp://192.168.100.202/ch0_0.h264" , rtspHD: "rtsp://192.168.100.202/ch0_1.h264" ,liveStarted:false ,updateTime:"0"}
+    {name: "CAM1",data:"",dataUpdate:false , rtsp: "rtsp://192.168.100.201/ch0_1.h264" , rtspHD: "rtsp://192.168.100.201/ch0_0.h264" ,liveStarted:false ,updateTime:"0"},
+    {name: "CAM2",data:"",dataUpdate:false , rtsp: "rtsp://192.168.100.202/ch0_1.h264" , rtspHD: "rtsp://192.168.100.202/ch0_0.h264" ,liveStarted:false ,updateTime:"0"}
 ];
 
 var countSend = 0;
-const timeLoop = 3000;
+const timeLoop = 3500;
 var arrayCamErrorCount = [0,0,0,0];
 var timeStartResetCAM = [0,0,0,0];
 var sendRotagetionPic = [0,0,0,0];
@@ -45,6 +45,7 @@ var apiVersion = "";
 var numCamera = "";
 var GetPicError = 0;
 var timeRestart = 0;
+var countWaitTwoPic = 0;
 
 
 var optionsToNewServer = {
@@ -390,7 +391,7 @@ async function mainV3()
                         arrayCamError.push('Send Error')
                         GetPicError += 1;
                     }
-                    console.log('Time:'+((programEnd - Date.now())/1000  )+ ' Count:'+countSend + ' Size: '+ (sizeOfPic/1000) +' kb Code:', httpResponse && httpResponse.statusCode);
+                    console.log('Time:'+((programEnd - Date.now())/1000  )+ ' Num:'+countCam +' Count:'+countSend + ' Size: '+ (sizeOfPic/1000) +' kb Code:', httpResponse && httpResponse.statusCode);
                 })
                 const form = r.form();
                 form.append('ID', carID);
@@ -526,7 +527,7 @@ function startCAM1()
 {
     console.log('CAM1 : Start');
     cameras[0].liveffmpeg = child_process.spawn("ffmpeg", [
-        "-rtsp_transport", "tcp", "-i", cameras[0].rtspHD,"-s", "640x360", "-vf" , "fps=2","-an","-sn", 
+        "-rtsp_transport", "tcp", "-i", cameras[0].rtsp,"-s", "640x360", "-vf" , "fps=1.5","-an","-sn", 
         "-f", "image2pipe" ,"-"   // output to stdout
         ]);
 
@@ -576,7 +577,7 @@ function startCAM2()
 {
     console.log('CAM2 : Start');
     cameras[1].liveffmpeg = child_process.spawn("ffmpeg", [
-        "-rtsp_transport", "tcp", "-i", cameras[1].rtspHD,"-s", "640x360", "-vf" , "fps=2", "-an", "-sn", 
+        "-rtsp_transport", "tcp", "-i", cameras[1].rtsp,"-s", "640x360", "-vf" , "fps=1.5", "-an", "-sn", 
         "-f", "image2pipe" , "-" // output to stdout
         ]);
     cameras[1].liveStarted = true;
@@ -702,16 +703,36 @@ async function apiV4()
             process.exit(1);
         }
 
+        if(countPic == 2) 
+        {
+            countWaitTwoPic++;
+            if(countWaitTwoPic > 20)countWaitTwoPic = 20;
+        }else{
+            countWaitTwoPic--;
+            if(countWaitTwoPic < 0)countWaitTwoPic = 0;    
+        }
+
 
         try
         {
             //if(size1 > 10000 && size2 > 10000)
-            if(cameras[0].dataUpdate == true || cameras[1].dataUpdate == true)
+            var sendPicCondition = false;
+            if( countWaitTwoPic > 10)
+            {
+                if( cameras[0].dataUpdate == true && cameras[1].dataUpdate == true)
+                {
+                    sendPicCondition = true;
+                }
+                    
+            }else{
+                sendPicCondition = true;
+            }
+                
+
+            if(sendPicCondition == true)
             {
                
                 LED.writeSync(1);
-
-                
 
                 var url = server +':3000/fileupload'
                 //var url = server + '/api/snapshot/postAmbulanceImageUpload';
@@ -719,7 +740,6 @@ async function apiV4()
                 //{
                 //    url = 'http://202.183.192.149:3000/fileupload';
                 //}
-
                 const r = request.post(url, function optionalCallback(err, httpResponse, body) 
                 {
                     if (err) 
