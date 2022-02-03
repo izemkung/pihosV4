@@ -106,21 +106,13 @@ async function setup()
         mainV3().catch(err => console.error(err)); 
     }
         
-    if(apiVersion == 4)
-    {
-        mainV4().catch(err => console.error(err)); 
-    }
-
-    if(apiVersion == 5)
+    if(apiVersion == 4 || apiVersion == 5)
     {
         mainV4().catch(err => console.error(err)); 
     }
 
     console.log('API Version  : ' + apiVersion);
     printAPI_DIS();
-    
-
-
     console.log("Setup End");
 
 }
@@ -236,9 +228,8 @@ async function mainV3()
     console.log('Server URL : ' + server);
     console.log('Camera Count  : ' + numCamera);
     console.log('API Version  : ' + apiVersion);
-
     console.log('Start Main V3');
-   
+    printAPI_DIS();
 
     
     
@@ -693,23 +684,34 @@ async function apiV4()
             arrayCamError.push('CAM2 Error')
         }
 
-        if(countPic > 0)
+        var numCam = arrayCamOnline.length;
+
+
+        if(countPic >= numCam)
         {
             timeRestart = currentTime;
         }
 
         if((currentTime - timeRestart) > 10000)
         {
+            console.log('Ex with time our camnum 1');
             process.exit(1);
         }
 
         if(countPic == 2) 
         {
             countWaitTwoPic++;
-            if(countWaitTwoPic > 20)countWaitTwoPic = 20;
+            if(countWaitTwoPic > 10)countWaitTwoPic = 10;
+            if(countWaitTwoPic < 0)countWaitTwoPic = 0; 
         }else{
             countWaitTwoPic--;
-            if(countWaitTwoPic < 0)countWaitTwoPic = 0;    
+            if(countWaitTwoPic < -20)
+            {
+                //console.log('Ex with cam error');
+                //process.exit(1);
+                countWaitTwoPic = -20;  
+            }
+
         }
 
 
@@ -717,7 +719,7 @@ async function apiV4()
         {
             //if(size1 > 10000 && size2 > 10000)
             var sendPicCondition = false;
-            if( countWaitTwoPic > 10)
+            if( countWaitTwoPic > 5)
             {
                 if( cameras[0].dataUpdate == true && cameras[1].dataUpdate == true)
                 {
@@ -979,29 +981,15 @@ async function apiV5()
 async function mainV4() 
 { 
 
-    await getCameraOnline();
+    //await getCameraOnline();
     console.log('CAR ID : ' + carID);
     console.log('Server URL : ' +server);
     console.log('Camera Count  : ' + numCamera);
+    var numCam = arrayCamOnline.length;
+    console.log('Camera Online  : ' + numCam);
     console.log('API Version  : ' + apiVersion);
-    if(apiVersion == 2)
-    {
-        console.log("Uppic by get url and ticker Streming");
-    }
-    if(apiVersion == 3)
-    {
-        console.log("Uppic by get url and Auto upload Streming");
-    }
-    if(apiVersion == 4)
-    {
-        console.log("Uppic by get from Streming");
-    }
-
-    if(apiVersion == 5)
-    {
-        console.log("New Server");
-    }
-
+    printAPI_DIS();
+   
     startCAM1();
     startCAM2();
     timeRestart = Date.now();
@@ -1011,7 +999,6 @@ async function mainV4()
     {
         setInterval(apiV4, 700);
     }
-
     if(apiVersion == 5)
     {
         setInterval(apiV5, 700);
