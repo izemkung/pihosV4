@@ -687,12 +687,12 @@ async function apiV4()
         var numCam = arrayCamOnline.length;
 
 
-        if(countPic >= numCam)
+        if(countPic >= 2)
         {
             timeRestart = currentTime;
         }
 
-        if((currentTime - timeRestart) > 10000)
+        if((currentTime - timeRestart) > 30000)
         {
             console.log('Ex with time our camnum 1');
             process.exit(1);
