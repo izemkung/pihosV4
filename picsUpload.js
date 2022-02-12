@@ -195,6 +195,22 @@ function runServiceCamRotage(workerData) {
 } 
 
 
+//runServiceCamReboot
+function runServiceCamReboot(workerData) { 
+    return new Promise((resolve, reject) => { 
+        const worker = new Worker( 
+                './sendReboot.js', { workerData }); 
+                worker.on('message', resolve); 
+                worker.on('error', reject); 
+                worker.on('exit', (code) => { 
+            if (code !== 0) 
+                reject(new Error( 
+`Stopped runServiceCamRotage the Worker Thread with the exit code: ${code}`)); 
+        }) 
+    }) 
+} 
+
+
 
 Object.size = function(obj) {
     var size = 0,
@@ -690,19 +706,11 @@ async function apiV4()
         if(countPic >= 2)
         {
             timeRestart = currentTime;
-        }
 
-        if((currentTime - timeRestart) > 30000)
-        {
-            console.log('Ex with time our camnum 1');
-            process.exit(1);
-        }
-
-        if(countPic == 2) 
-        {
             countWaitTwoPic++;
             if(countWaitTwoPic > 10)countWaitTwoPic = 10;
             if(countWaitTwoPic < 0)countWaitTwoPic = 0; 
+
         }else{
             countWaitTwoPic--;
             if(countWaitTwoPic < -20)
@@ -713,6 +721,31 @@ async function apiV4()
             }
 
         }
+
+        if((currentTime - timeRestart) > 30000)
+        {
+            console.log('Ex with time our camnum 1');
+            
+            if(cameras[0].dataUpdate == false)
+            {
+                const result = runServiceCamReboot("CAM1");
+                console.log('Send Reboot CAM1 Send ' + result);
+            }
+             
+            if(cameras[1].dataUpdate == false)
+            {
+                const result = runServiceCamReboot("CAM2");
+                console.log('Send Reboot CAM2 Send ' + result);
+            }
+            await wasteTime(1000);
+
+            console.log('V4 Exit Process ');
+            process.exit(1);
+        }
+
+       
+            
+        
 
 
         try
@@ -865,8 +898,6 @@ async function apiV5()
     {
         process.exit(1);
     }
-
-
         //try
         //{
             //if(size1 > 10000 && size2 > 10000)
