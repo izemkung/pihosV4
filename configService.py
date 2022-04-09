@@ -251,15 +251,27 @@ def networkStatus():
 
     ser.close()
 
+    my_file_path =  "/usr/src/qmi_reconnect.sh"
+    my_file = open(my_file_path)
+    string_list = my_file.readlines()
+    my_file.close()
+    currentAPN = ''
+    for idx in range(0, len(string_list)):
+        line = string_list[idx]
+        if 'quectel-CM' in line:
+            first_idx = line.find('-s') + 3
+            currentAPN = line[first_idx:].strip('\n')
+            #print('current APN : '+ currentAPN)
 
-    #newvalues['apn'] = bearrerinfo['Properties']['apn']
+
+    newvalues['apn'] = currentAPN
     newvalues['model'] = cpuinfo['Model']
     newvalues['tepm'] = cpuinfo['Tepm']
     newvalues['cpu'] = cpuinfo['CPU']
     newvalues['id'] = myconfig['id']
     newvalues['installLocation'] = myconfig['installLocation']
     newvalues['installDate'] = myconfig['installDate']
-    newvalues['versionSW'] = 4.1
+    newvalues['versionSW'] = '4.1'
 
     newvalues = { "$set": newvalues}
     db_pihos_status.update_one({}, newvalues)
@@ -344,7 +356,7 @@ def sendStatusPack(msg,time):
     status[0]['upTime'] = out +' ' + out1
     print (status[0])
     mongoConn.close()
-    
+
     del status[0]['_id']
     
     headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
