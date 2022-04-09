@@ -259,6 +259,8 @@ def networkStatus():
     newvalues['id'] = myconfig['id']
     newvalues['installLocation'] = myconfig['installLocation']
     newvalues['installDate'] = myconfig['installDate']
+    newvalues['versionSW'] = 4.1
+
     newvalues = { "$set": newvalues}
     db_pihos_status.update_one({}, newvalues)
     status = list(db_pihos_status.find())
@@ -338,11 +340,13 @@ def sendStatusPack(msg,time):
     byteOutput = subprocess.check_output(['uptime','-p'], timeout=2)
     out1 = byteOutput.decode('UTF-8').rstrip()
 
+    status[0]['msg']
     status[0]['upTime'] = out +' ' + out1
     print (status[0])
-
     mongoConn.close()
+    
     del status[0]['_id']
+    
     headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
     r = requests.post('http://159.89.208.90:5000/status/',data=json.dumps(status[0]), headers=headers)
   
