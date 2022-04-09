@@ -271,7 +271,7 @@ def networkStatus():
     newvalues['id'] = myconfig['id']
     newvalues['installLocation'] = myconfig['installLocation']
     newvalues['installDate'] = myconfig['installDate']
-    newvalues['versionSW'] = '4.1'
+    
 
     newvalues = { "$set": newvalues}
     db_pihos_status.update_one({}, newvalues)
@@ -357,6 +357,7 @@ def sendStatusPack(msg,time):
     print (status[0])
     mongoConn.close()
 
+    status[0]['versionSW'] = '4.1'
     del status[0]['_id']
     
     headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
