@@ -722,7 +722,7 @@ async function apiV4()
 
         }
 
-        if((currentTime - timeRestart) > 30000)
+        if((currentTime - timeRestart) > 40000)
         {
             console.log('Ex with time our camnum 1');
             
