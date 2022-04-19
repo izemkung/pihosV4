@@ -271,7 +271,7 @@ def networkStatus():
     newvalues['id'] = myconfig['id']
     newvalues['installLocation'] = myconfig['installLocation']
     newvalues['installDate'] = myconfig['installDate']
-    newvalues['versionSW'] = '4.1'
+    newvalues['versionSW'] = '4.2'
 
     newvalues = { "$set": newvalues}
     db_pihos_status.update_one({}, newvalues)
@@ -285,28 +285,38 @@ def updateAPNfromUSB():
     config_path = '/home/pi/usb/apn_configure.cfg'
     try:
         os.system('sudo mkdir /home/pi/usb/')
-        os.system('sudo mount /dev/sda1 /home/pi/usb/')
+        os.system('sudo mount /dev/sda /home/pi/usb/')
+        time.sleep(1)
         print("USB found!!")
     except:
         print("Not found")
 
     file_exists = os.path.exists(config_path)
     apn_string_list = ''
-
     if(file_exists):
         print("Config found!!")
-        usb_apn_file = open(config_path)
-        apn_string_list = usb_apn_file.readlines()
-        usb_apn_file.close()
-        for idx in range(0, len(apn_string_list)):
-            line = apn_string_list[idx]
-            if 'apn=' in line:
-                first_idx = line.find('=') + 1
-                usbAPN = line[first_idx:].strip('\n')
-                print('USB APN : '+ usbAPN)
     else:
-        print("Config not found!!")
-        return
+        try:
+            os.system('sudo mount /dev/sda1 /home/pi/usb/')
+            time.sleep(1)
+        except:
+            print("Not found")
+        file_exists = os.path.exists(config_path)
+        if(file_exists):
+            print("Config found!!")
+        else:
+            print("Config sda not found!!")
+            return
+    
+    usb_apn_file = open(config_path)
+    apn_string_list = usb_apn_file.readlines()
+    usb_apn_file.close()
+    for idx in range(0, len(apn_string_list)):
+        line = apn_string_list[idx]
+        if 'apn=' in line:
+            first_idx = line.find('=') + 1
+            usbAPN = line[first_idx:].strip('\n')
+            print('USB APN : '+ usbAPN)
 
     my_file_path =  "/usr/src/qmi_reconnect.sh"
     my_file = open(my_file_path)
@@ -357,7 +367,7 @@ def sendStatusPack(msg,time):
     print (status[0])
     mongoConn.close()
 
-    status[0]['versionSW'] = '4.1'
+    status[0]['versionSW'] = '4.2'
     del status[0]['_id']
     
     headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
