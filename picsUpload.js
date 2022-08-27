@@ -529,12 +529,12 @@ async function getCameraOnline()
     console.log(arrayCamOnline); 
 }
 
-
+//https://www.npmjs.com/package/lumen5-pipe2jpeg
 function startCAM1()
 {
     console.log('CAM1 : Start');
     cameras[0].liveffmpeg = child_process.spawn("ffmpeg", [
-        "-rtsp_transport", "tcp", "-i", cameras[0].rtsp,"-s", "640x360", "-vf" , "fps=1.5","-an","-sn", 
+        "-rtsp_transport", "udp", "-i", cameras[0].rtsp,"-s", "640x360", "-vf" , "fps=1.5","-an","-sn", 
         "-f", "image2pipe" ,"-"   // output to stdout
         ]);
 
@@ -584,7 +584,7 @@ function startCAM2()
 {
     console.log('CAM2 : Start');
     cameras[1].liveffmpeg = child_process.spawn("ffmpeg", [
-        "-rtsp_transport", "tcp", "-i", cameras[1].rtsp,"-s", "640x360", "-vf" , "fps=1.5", "-an", "-sn", 
+        "-rtsp_transport", "udp", "-i", cameras[1].rtsp,"-s", "640x360", "-vf" , "fps=1.5", "-an", "-sn", 
         "-f", "image2pipe" , "-" // output to stdout
         ]);
     cameras[1].liveStarted = true;

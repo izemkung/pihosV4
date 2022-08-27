@@ -407,7 +407,7 @@ GPIO.add_event_detect(18, GPIO.RISING, callback=SendCreashFun, bouncetime=100)
 
 lastTimeTask1 = time.time() + 600
 lastTimeTask2 = time.time()
-lastTimeTask3 = time.time() +20
+lastTimeTask3 = time.time() + 20
 timeStart = time.time()
 
 getConfig()
