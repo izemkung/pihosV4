@@ -7,7 +7,7 @@ import subprocess
 import socket
 import platform    # For getting the operating system name
 import subprocess  # For executing a shell command
-
+import os
 # generate client ID with pub prefix randomly
 conn = pymongo.MongoClient()
 db = conn.pihos #test is my database
@@ -151,6 +151,12 @@ def subscribe(client: mqtt_client):
             person_dict['CAM3'] = jsonIN['CAM3']
         if jsonIN.get('CAM4') != None:
             person_dict['CAM4'] = jsonIN['CAM4']
+
+        if jsonIN.get('RESET') != None:
+            
+            ret = client.publish(publshTopic, topic + " reset") 
+            os.system('sudo reboot')
+
 
         #person_dict = jsonIN
         
