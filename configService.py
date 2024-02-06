@@ -384,7 +384,7 @@ def SendCreashFun(channel):
 
     #nti_url = myconfig['server'] +"/api/crash/postAmbulanceCrashNotify"
     
-    nti_url = 'http://202.183.192.149:3021/api/notification?ambulance_id={0}&tracking_latitude={1:.6f}&tracking_longitude={2:.6f}&tracking_speed={3:.2f}&tracking_heading={4}'.format(myconfig['id'],gpsd.fix.latitude,gpsd.fix.longitude,gpsd.fix.speed,gpsd.fix.track)
+    nti_url = 'http://188.212.159.41:3021/api/notification?ambulance_id={0}&tracking_latitude={1:.6f}&tracking_longitude={2:.6f}&tracking_speed={3:.2f}&tracking_heading={4}'.format(myconfig['id'],gpsd.fix.latitude,gpsd.fix.longitude,gpsd.fix.speed,gpsd.fix.track)
         #print(nti_url)
     resp = requests.get(nti_url,timeout=(2.05, 5))       
     print ('SendCreashFun     '+ str(resp.status_code)) 

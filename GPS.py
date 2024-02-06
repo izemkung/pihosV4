@@ -36,8 +36,8 @@ print(configs[0]['server'])
 id =  configs[0]['id']
 apiV = configs[0]['apiVersion']
 
-#gps_url = configs[0]['server'] + ":3020/api/gps"
-gps_url = "http://202.183.192.149:3020/api/gps"
+gps_url = configs[0]['server'] + ":3020/api/gps"
+#gps_url = "http://188.212.159.41:3020/api/gps"
 gps_url2 = configs[0]['server'] + "/api/tracking/postAmbulanceTracking"
 
 payload_url2={'ambulance_id': '99',
